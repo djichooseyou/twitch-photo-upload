@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<style>
+
+body{
+background:black;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+img{
+max-width:90%;
+max-height:90%;
+border:6px solid white;
+border-radius:12px;
+box-shadow:0 0 40px rgba(255,255,255,0.5);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<img id="photo">
+
+<script>
+
+let photos=[];
+let index=0;
+
+async function loadPhotos(){
+
+ const res=await fetch("/approved");
+ photos=await res.json();
+
+}
+
+function showNext(){
+
+ if(photos.length===0) return;
+
+ const img=document.getElementById("photo");
+
+ img.src="/approved/"+photos[index]+"?"+Date.now();
+
+ index++;
+
+ if(index>=photos.length){
+  index=0;
+ }
+
+}
+
+setInterval(showNext,8000);
+
+loadPhotos();
+setInterval(loadPhotos,5000);
+
+</script>
+
+</body>
+
+</html>
