@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fan Wall</title>
+
+<style>
+body{
+background:black;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+img{
+max-width:90%;
+max-height:90%;
+border:6px solid white;
+border-radius:12px;
+}
+</style>
+
+</head>
+
+<body>
+
+<img id="fanphoto" src="/latest.jpg">
+
+<script>
+setInterval(()=>{
+ document.getElementById("fanphoto").src="/latest.jpg?"+new Date().getTime();
+},3000);
+</script>
+
+</body>
+</html>

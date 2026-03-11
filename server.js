@@ -1,3 +1,4 @@
+const fs = require("fs");
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -20,7 +21,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.post("/upload", upload.single("photo"), (req, res) => {
+
+ const latestPath = path.join(__dirname, "public/latest.jpg");
+
+ fs.copyFileSync(req.file.path, latestPath);
+
  res.send("Upload received!");
+
 });
 
 const PORT = process.env.PORT || 3000;
