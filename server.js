@@ -8,6 +8,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/approved", express.static("approved"));
 app.use("/pending", express.static("pending"));
@@ -23,18 +24,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-/* upload photo */
+/* Upload photo */
 app.post("/upload", upload.single("photo"), (req, res) => {
 
- const pendingPath = path.join(__dirname, "pending", req.file.filename);
+ const username = req.body.username || "Fan";
 
- fs.renameSync(req.file.path, pendingPath);
+ const safeName = username.replace(/[^a-z0-9]/gi,"_");
+
+ const newName = safeName + "_" + Date.now() + path.extname(req.file.originalname);
+
+ const newPath = path.join(__dirname,"pending",newName);
+
+ fs.renameSync(req.file.path,newPath);
 
  res.send("Photo submitted for approval!");
 
 });
 
-/* approve photo */
+/* Approve photo */
 app.get("/approve/:file",(req,res)=>{
 
  const file=req.params.file;
@@ -48,7 +55,7 @@ app.get("/approve/:file",(req,res)=>{
 
 });
 
-/* NEW: list pending photos */
+/* List pending photos */
 app.get("/pending",(req,res)=>{
 
  fs.readdir("./pending",(err,files)=>{
@@ -57,7 +64,7 @@ app.get("/pending",(req,res)=>{
 
 });
 
-/* NEW: list approved photos */
+/* List approved photos */
 app.get("/approved",(req,res)=>{
 
  fs.readdir("./approved",(err,files)=>{
