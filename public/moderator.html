@@ -1,0 +1,32 @@
+<h2>Pending Photos</h2>
+<div id="photos"></div>
+
+<script>
+async function loadPhotos(){
+
+ const res = await fetch("/pending");
+ const photos = await res.json();
+
+ const container = document.getElementById("photos");
+ container.innerHTML = "";
+
+ photos.forEach(p => {
+
+ const img = document.createElement("img");
+ img.src="/pending/"+p;
+ img.width=200;
+
+ const btn = document.createElement("button");
+ btn.innerText="Approve";
+
+ btn.onclick=()=>fetch("/approve/"+p).then(loadPhotos);
+
+ container.appendChild(img);
+ container.appendChild(btn);
+
+ });
+
+}
+
+loadPhotos();
+</script>

@@ -22,11 +22,24 @@ const upload = multer({ storage });
 
 app.post("/upload", upload.single("photo"), (req, res) => {
 
- const latestPath = path.join(__dirname, "public/latest.jpg");
+ const pendingPath = path.join(__dirname, "pending", req.file.filename);
 
- fs.copyFileSync(req.file.path, latestPath);
+ fs.renameSync(req.file.path, pendingPath);
 
- res.send("Upload received!");
+ res.send("Photo submitted for approval!");
+
+});
+
+app.get("/approve/:file",(req,res)=>{
+
+ const file=req.params.file;
+
+ const oldPath=path.join(__dirname,"pending",file);
+ const newPath=path.join(__dirname,"approved",file);
+
+ fs.renameSync(oldPath,newPath);
+
+ res.send("approved");
 
 });
 
