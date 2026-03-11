@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+
+body{
+background:black;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+padding:20px;
+}
+
+img{
+width:100%;
+border:4px solid white;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body id="wall"></body>
+
+<script>
+
+async function loadWall(){
+
+ const res=await fetch("/approved");
+ const photos=await res.json();
+
+ const wall=document.getElementById("wall");
+ wall.innerHTML="";
+
+ photos.slice(-12).forEach(p=>{
+
+ const img=document.createElement("img");
+ img.src="/approved/"+p+"?"+Date.now();
+
+ wall.appendChild(img);
+
+ });
+
+}
+
+setInterval(loadWall,4000);
+
+</script>
+
+</html>
