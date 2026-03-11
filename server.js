@@ -9,6 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.static("public"));
 
+app.use("/approved", express.static("approved"));
+app.use("/pending", express.static("pending"));
+
 const storage = multer.diskStorage({
  destination: function(req, file, cb) {
    cb(null, "uploads/");
@@ -20,6 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+/* upload photo */
 app.post("/upload", upload.single("photo"), (req, res) => {
 
  const pendingPath = path.join(__dirname, "pending", req.file.filename);
@@ -30,6 +34,7 @@ app.post("/upload", upload.single("photo"), (req, res) => {
 
 });
 
+/* approve photo */
 app.get("/approve/:file",(req,res)=>{
 
  const file=req.params.file;
@@ -40,6 +45,24 @@ app.get("/approve/:file",(req,res)=>{
  fs.renameSync(oldPath,newPath);
 
  res.send("approved");
+
+});
+
+/* NEW: list pending photos */
+app.get("/pending",(req,res)=>{
+
+ fs.readdir("./pending",(err,files)=>{
+  res.json(files);
+ });
+
+});
+
+/* NEW: list approved photos */
+app.get("/approved",(req,res)=>{
+
+ fs.readdir("./approved",(err,files)=>{
+  res.json(files);
+ });
 
 });
 
