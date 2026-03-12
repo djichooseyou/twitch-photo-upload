@@ -42,16 +42,20 @@ app.post("/upload", upload.single("photo"), (req, res) => {
 });
 
 /* Approve photo */
-app.get("/approve/:file",(req,res)=>{
+app.get("/approved",(req,res)=>{
 
- const file=req.params.file;
+ fs.readdir("./approved",(err,files)=>{
 
- const oldPath=path.join(__dirname,"pending",file);
- const newPath=path.join(__dirname,"approved",file);
+  const images = files.filter(file =>
+   file.endsWith(".jpg") ||
+   file.endsWith(".jpeg") ||
+   file.endsWith(".png") ||
+   file.endsWith(".webp")
+  );
 
- fs.renameSync(oldPath,newPath);
+  res.json(images);
 
- res.send("approved");
+ });
 
 });
 
@@ -59,7 +63,16 @@ app.get("/approve/:file",(req,res)=>{
 app.get("/pending",(req,res)=>{
 
  fs.readdir("./pending",(err,files)=>{
-  res.json(files);
+
+  const images = files.filter(file =>
+   file.endsWith(".jpg") ||
+   file.endsWith(".jpeg") ||
+   file.endsWith(".png") ||
+   file.endsWith(".webp")
+  );
+
+  res.json(images);
+
  });
 
 });
