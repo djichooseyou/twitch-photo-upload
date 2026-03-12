@@ -28,7 +28,6 @@ const upload = multer({ storage });
 app.post("/upload", upload.single("photo"), (req, res) => {
 
  const username = req.body.username || "Fan";
-
  const safeName = username.replace(/[^a-z0-9]/gi,"_");
 
  const newName = safeName + "_" + Date.now() + path.extname(req.file.originalname);
@@ -89,4 +88,10 @@ app.get("/approved",(req,res)=>{
 
  });
 
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+ console.log("Server running on port " + PORT);
 });
