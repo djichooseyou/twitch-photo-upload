@@ -15,11 +15,12 @@ height:100vh;
 margin:0;
 color:white;
 font-family:Arial;
+overflow:hidden;
 }
 
 #title{
-font-size:48px;
-letter-spacing:3px;
+font-size:50px;
+letter-spacing:4px;
 margin-bottom:20px;
 opacity:.9;
 }
@@ -36,11 +37,13 @@ border:6px solid white;
 border-radius:12px;
 box-shadow:0 0 40px rgba(255,255,255,0.5);
 display:none;
+transform:translateX(120%);
+transition:transform .7s ease, opacity .7s ease;
 opacity:0;
-transition:opacity 1s ease;
 }
 
 img.show{
+transform:translateX(0);
 opacity:1;
 }
 
@@ -93,7 +96,7 @@ async function loadPhotos(){
  photos = newPhotos;
 
  if(photos.length > 0){
-  document.getElementById("waiting").style.display = "none";
+  document.getElementById("waiting").style.display="none";
  }
 
 }
@@ -105,13 +108,17 @@ function showAlert(file){
 
  const name = file.includes("_") ? file.split("_")[0] : "Fan";
 
- img.src = "/approved/" + file + "?" + Date.now();
+ img.src="/approved/"+file+"?"+Date.now();
 
- user.innerText = name;
+ user.innerText=name;
 
  img.style.display="block";
 
- img.classList.add("show");
+ img.classList.remove("show");
+
+ setTimeout(()=>{
+  img.classList.add("show");
+ },50);
 
 }
 
@@ -119,9 +126,9 @@ function showNext(){
 
  if(alertQueue.length > 0){
 
-  const nextAlert = alertQueue.shift();
+  const alertPhoto = alertQueue.shift();
 
-  showAlert(nextAlert);
+  showAlert(alertPhoto);
 
   return;
 
@@ -136,9 +143,9 @@ function showNext(){
 
  const name = file.includes("_") ? file.split("_")[0] : "Fan";
 
- img.src = "/approved/" + file + "?" + Date.now();
+ img.src="/approved/"+file+"?"+Date.now();
 
- user.innerText = name;
+ user.innerText=name;
 
  img.style.display="block";
 
