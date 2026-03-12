@@ -34,11 +34,14 @@ const upload = multer({
 app.post("/upload", upload.single("photo"), (req, res) => {
 
  const username = req.body.username || "Fan";
+ const message = req.body.message || "";
 
  const safeName = username.replace(/[^a-z0-9]/gi,"_");
+ const safeMessage = message.replace(/\s+/g,"_");
 
  const newName =
-  safeName + "_" + Date.now() + path.extname(req.file.originalname);
+  safeName + "__" + safeMessage + "__" + Date.now() +
+  path.extname(req.file.originalname);
 
  const newPath = path.join(__dirname,"pending",newName);
 
