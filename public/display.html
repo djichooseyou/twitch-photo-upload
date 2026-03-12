@@ -17,6 +17,13 @@ color:white;
 font-family:Arial;
 }
 
+#title{
+font-size:48px;
+letter-spacing:3px;
+margin-bottom:20px;
+opacity:.9;
+}
+
 #waiting{
 font-size:36px;
 opacity:.6;
@@ -29,6 +36,12 @@ border:6px solid white;
 border-radius:12px;
 box-shadow:0 0 40px rgba(255,255,255,0.5);
 display:none;
+opacity:0;
+transition:opacity 1s ease;
+}
+
+img.show{
+opacity:1;
 }
 
 #username{
@@ -47,6 +60,8 @@ text-shadow:0 0 20px rgba(255,255,255,.9);
 
 <body>
 
+<div id="title">FAN SHOUTOUT</div>
+
 <div id="waiting">Waiting for fan photos...</div>
 
 <img id="photo">
@@ -57,29 +72,60 @@ text-shadow:0 0 20px rgba(255,255,255,.9);
 
 let photos = [];
 let index = 0;
+let lastSeen = 0;
+let alertQueue = [];
 
 async function loadPhotos(){
 
  const res = await fetch("/approved");
  const newPhotos = await res.json();
 
- if(newPhotos.length !== photos.length){
-  index = 0;
+ if(newPhotos.length > lastSeen){
+
+  const newOnes = newPhotos.slice(lastSeen);
+
+  alertQueue.push(...newOnes);
+
  }
+
+ lastSeen = newPhotos.length;
 
  photos = newPhotos;
 
  if(photos.length > 0){
-
   document.getElementById("waiting").style.display = "none";
-
-  showNext();
-
  }
 
 }
 
+function showAlert(file){
+
+ const img = document.getElementById("photo");
+ const user = document.getElementById("username");
+
+ const name = file.includes("_") ? file.split("_")[0] : "Fan";
+
+ img.src = "/approved/" + file + "?" + Date.now();
+
+ user.innerText = name;
+
+ img.style.display="block";
+
+ img.classList.add("show");
+
+}
+
 function showNext(){
+
+ if(alertQueue.length > 0){
+
+  const nextAlert = alertQueue.shift();
+
+  showAlert(nextAlert);
+
+  return;
+
+ }
 
  if(photos.length === 0) return;
 
@@ -88,13 +134,15 @@ function showNext(){
 
  const file = photos[index];
 
- img.style.display = "block";
+ const name = file.includes("_") ? file.split("_")[0] : "Fan";
 
  img.src = "/approved/" + file + "?" + Date.now();
 
- const name = file.includes("_") ? file.split("_")[0] : "Fan";
-
  user.innerText = name;
+
+ img.style.display="block";
+
+ img.classList.add("show");
 
  index++;
 
@@ -104,13 +152,9 @@ function showNext(){
 
 }
 
-/* rotate photos every 8 seconds */
 setInterval(showNext,8000);
+setInterval(loadPhotos,3000);
 
-/* check for new approved photos */
-setInterval(loadPhotos,4000);
-
-/* initial load */
 loadPhotos();
 
 </script>
