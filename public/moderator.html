@@ -1,4 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+padding:40px;
+}
+
+#photos{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:25px;
+}
+
+.card{
+background:#222;
+padding:15px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,.5);
+}
+
+img{
+max-width:200px;
+border-radius:8px;
+}
+
+button{
+margin-top:10px;
+background:#00cc66;
+border:none;
+padding:10px 18px;
+color:white;
+font-size:16px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#00aa55;
+}
+
+</style>
+
+</head>
+
+<body>
+
 <h2>Pending Photos</h2>
+
 <div id="photos"></div>
 
 <script>
@@ -13,32 +69,43 @@ async function loadPhotos(){
 
  photos.forEach(file => {
 
-  const div = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
 
   const img = document.createElement("img");
   img.src="/pending/"+file;
-  img.width=200;
 
   const btn = document.createElement("button");
   btn.innerText="Approve";
 
   btn.onclick = async () => {
 
-   await fetch("/approve/" + encodeURIComponent(file));
+   const response = await fetch("/approve/" + encodeURIComponent(file));
 
-   loadPhotos();
+   if(response.ok){
+    loadPhotos();
+   } else {
+    alert("Approval failed");
+   }
 
   };
 
-  div.appendChild(img);
-  div.appendChild(btn);
+  card.appendChild(img);
+  card.appendChild(btn);
 
-  container.appendChild(div);
+  container.appendChild(card);
 
  });
 
 }
 
+/* refresh pending list every 5 seconds */
+setInterval(loadPhotos,5000);
+
 loadPhotos();
 
 </script>
+
+</body>
+
+</html>

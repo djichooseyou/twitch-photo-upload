@@ -17,13 +17,20 @@ color:white;
 font-family:Arial;
 }
 
+#waiting{
+font-size:36px;
+opacity:.6;
+}
+
 img{
 max-width:90%;
-max-height:90%;
+max-height:70%;
 border:6px solid white;
 border-radius:12px;
 box-shadow:0 0 40px rgba(255,255,255,0.5);
+display:none;
 }
+
 #username{
 margin-top:30px;
 font-size:64px;
@@ -33,6 +40,7 @@ padding:10px 25px;
 border-radius:10px;
 text-shadow:0 0 20px rgba(255,255,255,.9);
 }
+
 </style>
 
 </head>
@@ -41,55 +49,69 @@ text-shadow:0 0 20px rgba(255,255,255,.9);
 
 <div id="waiting">Waiting for fan photos...</div>
 
-<img id="photo" style="display:none">
+<img id="photo">
 
 <div id="username"></div>
 
 <script>
 
-let photos=[];
-let index=0;
+let photos = [];
+let index = 0;
 
 async function loadPhotos(){
 
- const res=await fetch("/approved");
- photos=await res.json();
+ const res = await fetch("/approved");
+ const newPhotos = await res.json();
+
+ if(newPhotos.length !== photos.length){
+  index = 0;
+ }
+
+ photos = newPhotos;
 
  if(photos.length > 0){
-  document.getElementById("waiting").style.display="none";
+
+  document.getElementById("waiting").style.display = "none";
+
+  showNext();
+
  }
 
 }
 
 function showNext(){
 
- if(photos.length===0) return;
+ if(photos.length === 0) return;
 
- const img=document.getElementById("photo");
- const user=document.getElementById("username");
+ const img = document.getElementById("photo");
+ const user = document.getElementById("username");
 
- const file=photos[index];
+ const file = photos[index];
 
- img.style.display="block";
+ img.style.display = "block";
 
- img.src="/approved/"+file+"?"+Date.now();
+ img.src = "/approved/" + file + "?" + Date.now();
 
- const name=file.split("_")[0];
+ const name = file.includes("_") ? file.split("_")[0] : "Fan";
 
- user.innerText=name;
+ user.innerText = name;
 
  index++;
 
- if(index>=photos.length){
-  index=0;
+ if(index >= photos.length){
+  index = 0;
  }
 
 }
 
+/* rotate photos every 8 seconds */
 setInterval(showNext,8000);
 
+/* check for new approved photos */
+setInterval(loadPhotos,4000);
+
+/* initial load */
 loadPhotos();
-setInterval(loadPhotos,6000);
 
 </script>
 
