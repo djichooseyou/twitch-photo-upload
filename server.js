@@ -42,20 +42,16 @@ app.post("/upload", upload.single("photo"), (req, res) => {
 });
 
 /* Approve photo */
-app.get("/approved",(req,res)=>{
+app.get("/approve/:file",(req,res)=>{
 
- fs.readdir("./approved",(err,files)=>{
+ const file=req.params.file;
 
-  const images = files.filter(file =>
-   file.endsWith(".jpg") ||
-   file.endsWith(".jpeg") ||
-   file.endsWith(".png") ||
-   file.endsWith(".webp")
-  );
+ const oldPath=path.join(__dirname,"pending",file);
+ const newPath=path.join(__dirname,"approved",file);
 
-  res.json(images);
+ fs.renameSync(oldPath,newPath);
 
- });
+ res.send("approved");
 
 });
 
@@ -81,13 +77,16 @@ app.get("/pending",(req,res)=>{
 app.get("/approved",(req,res)=>{
 
  fs.readdir("./approved",(err,files)=>{
-  res.json(files);
+
+  const images = files.filter(file =>
+   file.endsWith(".jpg") ||
+   file.endsWith(".jpeg") ||
+   file.endsWith(".png") ||
+   file.endsWith(".webp")
+  );
+
+  res.json(images);
+
  });
 
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
- console.log("Server running on port " + PORT);
 });

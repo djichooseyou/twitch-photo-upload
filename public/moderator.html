@@ -2,6 +2,7 @@
 <div id="photos"></div>
 
 <script>
+
 async function loadPhotos(){
 
  const res = await fetch("/pending");
@@ -10,23 +11,34 @@ async function loadPhotos(){
  const container = document.getElementById("photos");
  container.innerHTML = "";
 
- photos.forEach(p => {
+ photos.forEach(file => {
 
- const img = document.createElement("img");
- img.src="/pending/"+p;
- img.width=200;
+  const div = document.createElement("div");
 
- const btn = document.createElement("button");
- btn.innerText="Approve";
+  const img = document.createElement("img");
+  img.src="/pending/"+file;
+  img.width=200;
 
- btn.onclick=()=>fetch("/approve/"+p).then(loadPhotos);
+  const btn = document.createElement("button");
+  btn.innerText="Approve";
 
- container.appendChild(img);
- container.appendChild(btn);
+  btn.onclick = async () => {
+
+   await fetch("/approve/" + encodeURIComponent(file));
+
+   loadPhotos();
+
+  };
+
+  div.appendChild(img);
+  div.appendChild(btn);
+
+  container.appendChild(div);
 
  });
 
 }
 
 loadPhotos();
+
 </script>
