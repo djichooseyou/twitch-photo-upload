@@ -28,7 +28,11 @@ box-shadow:0 0 40px rgba(255,255,255,0.5);
 
 <body>
 
-<img id="photo">
+<div id="waiting">Waiting for fan photos...</div>
+
+<img id="photo" style="display:none">
+
+<div id="username"></div>
 
 <script>
 
@@ -40,6 +44,10 @@ async function loadPhotos(){
  const res=await fetch("/approved");
  photos=await res.json();
 
+ if(photos.length > 0){
+  document.getElementById("waiting").style.display="none";
+ }
+
 }
 
 function showNext(){
@@ -47,8 +55,17 @@ function showNext(){
  if(photos.length===0) return;
 
  const img=document.getElementById("photo");
+ const user=document.getElementById("username");
 
- img.src="/approved/"+photos[index]+"?"+Date.now();
+ const file=photos[index];
+
+ img.style.display="block";
+
+ img.src="/approved/"+file+"?"+Date.now();
+
+ const name=file.split("_")[0];
+
+ user.innerText=name;
 
  index++;
 
@@ -61,7 +78,7 @@ function showNext(){
 setInterval(showNext,8000);
 
 loadPhotos();
-setInterval(loadPhotos,5000);
+setInterval(loadPhotos,6000);
 
 </script>
 
