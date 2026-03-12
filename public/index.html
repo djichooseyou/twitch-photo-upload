@@ -1,38 +1,60 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>DJICHOOSEYOU Fan Photo Upload</title>
 
 <style>
+
 body{
-font-family: Arial;
+font-family:Arial;
 background:#111;
 color:white;
 text-align:center;
-padding:50px;
+padding:40px;
 }
 
 .upload-box{
 background:#222;
 padding:30px;
-border-radius:10px;
+border-radius:12px;
 width:350px;
+max-width:90%;
 margin:auto;
+box-shadow:0 0 20px rgba(0,0,0,.5);
+}
+
+input{
+width:90%;
+padding:10px;
+font-size:16px;
+border-radius:6px;
+border:none;
+margin-top:5px;
 }
 
 button{
 background:#ff0055;
 color:white;
 border:none;
-padding:10px 20px;
+padding:12px 20px;
 font-size:16px;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
+margin-top:15px;
 }
 
 button:hover{
 background:#ff3377;
 }
+
+.note{
+opacity:.6;
+font-size:14px;
+margin-top:10px;
+}
+
 </style>
 
 </head>
@@ -47,20 +69,33 @@ background:#ff3377;
 <form action="/upload" method="post" enctype="multipart/form-data">
 
 <label>Your Name or Twitch Username</label>
-
 <br><br>
 
 <input type="text" name="username" placeholder="Enter your name" required>
 
 <br><br>
 
-<input type="file" name="photo" accept="image/*" required>
+<label>Message for the stream (optional)</label>
+<br><br>
+
+<input type="text" name="message" placeholder="Say something!" maxlength="80">
 
 <br><br>
+
+<label>Select Photo</label>
+<br><br>
+
+<input type="file" name="photo" accept="image/*" required>
+
+<br>
 
 <button type="submit">Upload Photo</button>
 
 </form>
+
+<div class="note">
+Your photo may appear live on the stream!
+</div>
 
 </div>
 
