@@ -116,10 +116,15 @@ function showAlert(file){
  const user = document.getElementById("username");
  const messageBox = document.getElementById("message");
 
- const parts = file.split("__");
+const parts = file.split("__");
 
- const name = parts[0];
- const message = parts[1] || "";
+const name = parts[0];
+
+let message = "";
+
+if(parts.length > 2){
+ message = parts[1];
+}
 
  img.src="/approved/"+file+"?"+Date.now();
 

@@ -37,7 +37,7 @@ app.post("/upload", upload.single("photo"), (req, res) => {
  const message = req.body.message || "";
 
  const safeName = username.replace(/[^a-z0-9]/gi,"_");
- const safeMessage = message.replace(/\s+/g,"_");
+ const safeMessage = message.replace(/[^a-z0-9]/gi,"_");
 
  const newName =
   safeName + "__" + safeMessage + "__" + Date.now() +
