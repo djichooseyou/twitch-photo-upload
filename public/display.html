@@ -30,9 +30,21 @@ font-size:36px;
 opacity:.6;
 }
 
+/* Stable frame prevents shaking */
+#photoFrame{
+width:90%;
+max-width:1200px;
+height:70vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+}
+
+/* Image animation */
 img{
-max-width:90%;
-max-height:70%;
+max-width:100%;
+max-height:100%;
 border:6px solid white;
 border-radius:12px;
 box-shadow:0 0 40px rgba(255,255,255,0.5);
@@ -62,6 +74,23 @@ font-size:34px;
 max-width:70%;
 text-align:center;
 opacity:.9;
+background:white;
+color:black;
+padding:15px 20px;
+border-radius:20px;
+position:relative;
+}
+
+/* speech bubble tail */
+#message:after{
+content:"";
+position:absolute;
+bottom:-18px;
+left:50%;
+transform:translateX(-50%);
+border-width:18px 18px 0;
+border-style:solid;
+border-color:white transparent transparent;
 }
 
 </style>
@@ -74,7 +103,9 @@ opacity:.9;
 
 <div id="waiting">Waiting for fan photos...</div>
 
+<div id="photoFrame">
 <img id="photo">
+</div>
 
 <div id="username"></div>
 <div id="message"></div>
@@ -115,33 +146,35 @@ function showAlert(file){
  const user = document.getElementById("username");
  const messageBox = document.getElementById("message");
 
-const parts = file.split("__");
+ const parts = file.split("__");
 
-const name = parts[0];
+ const name = parts[0];
 
-let message = "";
-
-if(parts.length > 2){
- message = parts[1];
-}
-
- img.src="/approved/"+file+"?"+Date.now();
-
- user.innerText=name;
-
- if(message.trim()===""){
-  messageBox.style.display="none";
- }else{
-  messageBox.style.display="block";
-  messageBox.innerText=message.replaceAll("_"," ");
+ let message = "";
+ if(parts.length > 2){
+  message = parts[1];
  }
-
 
  img.classList.remove("show");
 
  setTimeout(()=>{
-  img.classList.add("show");
- },50);
+
+  img.src="/approved/"+file+"?"+Date.now();
+
+  user.innerText=name;
+
+  if(message.trim()===""){
+   messageBox.style.display="none";
+  }else{
+   messageBox.style.display="block";
+   messageBox.innerText = message.replaceAll("_"," ");
+  }
+
+  setTimeout(()=>{
+   img.classList.add("show");
+  },50);
+
+ },400);
 
 }
 
