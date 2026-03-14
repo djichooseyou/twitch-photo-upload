@@ -30,7 +30,7 @@ font-size:36px;
 opacity:.6;
 }
 
-/* Stable frame prevents shaking */
+/* Frame now holds the border */
 #photoFrame{
 width:90%;
 max-width:1200px;
@@ -39,16 +39,16 @@ display:flex;
 justify-content:center;
 align-items:center;
 overflow:hidden;
+border:6px solid white;
+border-radius:12px;
+box-shadow:0 0 40px rgba(255,255,255,0.5);
 }
 
-/* Image animation */
+/* Image inside frame */
 img{
 width:100%;
 height:100%;
 object-fit:contain;
-border:6px solid white;
-border-radius:12px;
-box-shadow:0 0 40px rgba(255,255,255,0.5);
 transform:translateX(120%);
 transition:transform .8s ease, opacity .8s ease;
 opacity:0;
@@ -82,7 +82,6 @@ border-radius:20px;
 position:relative;
 }
 
-/* Speech bubble tail */
 #message:after{
 content:"";
 position:absolute;
@@ -124,10 +123,8 @@ async function loadPhotos(){
  const newPhotos = await res.json();
 
  if(newPhotos.length > lastSeen){
-
   const newOnes = newPhotos.slice(lastSeen);
   alertQueue.push(...newOnes);
-
  }
 
  lastSeen = newPhotos.length;
@@ -180,11 +177,9 @@ function showAlert(file){
 function showNext(){
 
  if(alertQueue.length > 0){
-
   const alertPhoto = alertQueue.shift();
   showAlert(alertPhoto);
   return;
-
  }
 
  if(photos.length === 0) return;
