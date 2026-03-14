@@ -2,95 +2,45 @@
 <html>
 
 <head>
+<meta charset="UTF-8">
+<title>Fan Photo Display</title>
 
 <style>
 
 body{
-background:black;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
-color:white;
-font-family:Arial;
-overflow:hidden;
+  background:black;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
-#title{
-font-size:50px;
-letter-spacing:4px;
-margin-bottom:20px;
-opacity:.9;
+/* Portrait frame */
+
+.photo-frame{
+  width:260px;
+  height:460px;
+  border-radius:22px;
+  padding:6px;
+  background:linear-gradient(135deg,#ffffff,#bbbbbb);
+  box-shadow:0 0 30px rgba(255,255,255,0.35);
 }
 
-#waiting{
-font-size:36px;
-opacity:.6;
+/* Inner container */
+
+.photo-inner{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  border-radius:18px;
+  background:black;
 }
 
-/* Frame now holds the border */
-#photoFrame{
-width:90%;
-max-width:1200px;
-height:70vh;
-display:flex;
-justify-content:center;
-align-items:center;
-overflow:hidden;
-border:6px solid white;
-border-radius:12px;
-box-shadow:0 0 40px rgba(255,255,255,0.5);
-}
-
-/* Image inside frame */
-img{
-width:100%;
-height:100%;
-object-fit:contain;
-transform:translateX(120%);
-transition:transform .8s ease, opacity .8s ease;
-opacity:0;
-}
-
-img.show{
-transform:translateX(0);
-opacity:1;
-}
-
-#username{
-margin-top:30px;
-font-size:64px;
-font-weight:bold;
-background:rgba(0,0,0,.6);
-padding:10px 25px;
-border-radius:10px;
-text-shadow:0 0 20px rgba(255,255,255,.9);
-}
-
-#message{
-margin-top:15px;
-font-size:34px;
-max-width:70%;
-text-align:center;
-opacity:.9;
-background:white;
-color:black;
-padding:15px 20px;
-border-radius:20px;
-position:relative;
-}
-
-#message:after{
-content:"";
-position:absolute;
-bottom:-18px;
-left:50%;
-transform:translateX(-50%);
-border-width:18px 18px 0;
-border-style:solid;
-border-color:white transparent transparent;
+.photo-inner img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 </style>
@@ -99,107 +49,17 @@ border-color:white transparent transparent;
 
 <body>
 
-<div id="title">FAN SHOUTOUT</div>
-
-<div id="waiting">Waiting for fan photos...</div>
-
-<div id="photoFrame">
-<img id="photo">
+<div class="photo-frame">
+  <div class="photo-inner">
+    <img id="fanphoto" src="/latest.jpg">
+  </div>
 </div>
-
-<div id="username"></div>
-<div id="message"></div>
 
 <script>
 
-let photos = [];
-let index = 0;
-let lastSeen = 0;
-let alertQueue = [];
-
-async function loadPhotos(){
-
- const res = await fetch("/approved");
- const newPhotos = await res.json();
-
- if(newPhotos.length > lastSeen){
-  const newOnes = newPhotos.slice(lastSeen);
-  alertQueue.push(...newOnes);
- }
-
- lastSeen = newPhotos.length;
- photos = newPhotos;
-
- if(photos.length > 0){
-  document.getElementById("waiting").style.display="none";
- }
-
-}
-
-function showAlert(file){
-
- const img = document.getElementById("photo");
- const user = document.getElementById("username");
- const messageBox = document.getElementById("message");
-
- const parts = file.split("__");
-
- const name = parts[0];
-
- let message = "";
- if(parts.length > 2){
-  message = parts[1];
- }
-
- img.classList.remove("show");
-
- setTimeout(()=>{
-
-  img.src="/approved/"+file+"?"+Date.now();
-
-  user.innerText=name;
-
-  if(message.trim()===""){
-   messageBox.style.display="none";
-  }else{
-   messageBox.style.display="block";
-   messageBox.innerText = message.replaceAll("_"," ");
-  }
-
-  setTimeout(()=>{
-   img.classList.add("show");
-  },50);
-
- },400);
-
-}
-
-function showNext(){
-
- if(alertQueue.length > 0){
-  const alertPhoto = alertQueue.shift();
-  showAlert(alertPhoto);
-  return;
- }
-
- if(photos.length === 0) return;
-
- const file = photos[index];
-
- showAlert(file);
-
- index++;
-
- if(index >= photos.length){
-  index = 0;
- }
-
-}
-
-setInterval(showNext,8000);
-setInterval(loadPhotos,3000);
-
-loadPhotos();
+setInterval(()=>{
+ document.getElementById("fanphoto").src="/latest.jpg?"+new Date().getTime();
+},3000);
 
 </script>
 
