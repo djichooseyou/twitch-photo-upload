@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+background:transparent;
+}
+
+img{
+position:absolute;
+width:120px;
+animation:fall 4s linear forwards;
+}
+
+@keyframes fall{
+0% { transform:translateY(-200px) rotate(0deg); }
+100% { transform:translateY(110vh) rotate(360deg); }
+}
+
+</style>
+</head>
+
+<body id="rain"></body>
+
+<script>
+
+async function dropPhoto(){
+
+const res = await fetch("/approved");
+const photos = await res.json();
+
+if(!photos.length) return;
+
+const latest = photos[photos.length-1];
+
+const img = document.createElement("img");
+img.src="/approved/"+latest+"?"+Date.now();
+
+img.style.left=Math.random()*90+"%";
+
+document.getElementById("rain").appendChild(img);
+
+setTimeout(()=>img.remove(),4000);
+
+}
+
+setInterval(dropPhoto,3000);
+
+</script>
+
+</html>
