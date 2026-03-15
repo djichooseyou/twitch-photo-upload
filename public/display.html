@@ -8,39 +8,55 @@
 <style>
 
 body{
-  background:black;
-  margin:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+background:black;
+margin:0;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+font-family:Arial;
+color:white;
 }
-
-/* Portrait frame */
 
 .photo-frame{
-  width:260px;
-  height:460px;
-  border-radius:22px;
-  padding:6px;
-  background:linear-gradient(135deg,#ffffff,#bbbbbb);
-  box-shadow:0 0 30px rgba(255,255,255,0.35);
+width:420px;
+height:740px;
+border-radius:22px;
+padding:8px;
+background:linear-gradient(135deg,#ffffff,#bbbbbb);
+box-shadow:0 0 30px rgba(255,255,255,0.35);
+display:flex;
+flex-direction:column;
 }
 
-/* Inner container */
-
 .photo-inner{
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  border-radius:18px;
-  background:black;
+flex:1;
+overflow:hidden;
+border-radius:18px;
+background:black;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
 .photo-inner img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+.username{
+text-align:center;
+font-size:24px;
+margin-top:10px;
+font-weight:bold;
+}
+
+.message{
+text-align:center;
+font-size:18px;
+opacity:0.8;
+padding-bottom:10px;
 }
 
 </style>
@@ -50,16 +66,46 @@ body{
 <body>
 
 <div class="photo-frame">
-  <div class="photo-inner">
-    <img id="fanphoto" src="/latest.jpg">
-  </div>
+
+<div class="photo-inner">
+<img id="fanphoto">
+</div>
+
+<div class="username" id="username"></div>
+<div class="message" id="message"></div>
+
 </div>
 
 <script>
 
-setInterval(()=>{
- document.getElementById("fanphoto").src="/latest.jpg?"+new Date().getTime();
-},3000);
+async function loadLatest(){
+
+ const res = await fetch("/approved");
+ const photos = await res.json();
+
+ if(!photos.length) return;
+
+ const latest = photos[photos.length-1];
+
+ /* show image */
+
+ document.getElementById("fanphoto").src =
+ "/approved/"+latest+"?"+Date.now();
+
+ /* extract username + message from filename */
+
+ const parts = latest.split("__");
+
+ const username = parts[0] || "";
+ const message = parts[1] || "";
+
+ document.getElementById("username").innerText = "@"+username;
+ document.getElementById("message").innerText =
+ message.replaceAll("_"," ");
+
+}
+
+setInterval(loadLatest,3000);
 
 </script>
 
