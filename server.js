@@ -45,7 +45,12 @@ const storage = multer.diskStorage({
  }
 });
 
-const upload = multer({storage});
+const upload = multer({
+ storage,
+ limits:{
+  fileSize: 10 * 1024 * 1024
+ }
+});
 
 /* --------------------------
    UPLOAD PHOTO
@@ -56,8 +61,8 @@ app.post("/upload",upload.single("photo"),(req,res)=>{
  const username = req.body.username || "Fan";
  const message = req.body.message || "";
 
- const safeName = username.replace(/[^a-z0-9]/gi,"_");
- const safeMessage = message.replace(/[^a-z0-9]/gi,"_");
+ const safeName = username.replace(/\s+/g,"_").replace(/__/g,"_");
+const safeMessage = message.replace(/\s+/g,"_").replace(/__/g,"_");
 
  const newName =
  safeName+"__"+safeMessage+"__"+Date.now()+
