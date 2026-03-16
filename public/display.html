@@ -47,15 +47,16 @@ object-fit:contain;
 
 .username{
 text-align:center;
-font-size:24px;
-margin-top:10px;
+font-size:40px;
+margin-top:14px;
 font-weight:bold;
+text-shadow:0 0 12px rgba(255,255,255,0.8);
 }
 
 .message{
 text-align:center;
-font-size:18px;
-opacity:0.8;
+font-size:28px;
+opacity:0.9;
 padding-bottom:10px;
 }
 
@@ -78,23 +79,26 @@ padding-bottom:10px;
 
 <script>
 
-async function loadLatest(){
+let photos = [];
+let index = 0;
+
+async function loadPhotos(){
 
  const res = await fetch("/approved");
- const photos = await res.json();
+ photos = await res.json();
+
+}
+
+function showNext(){
 
  if(!photos.length) return;
 
- const latest = photos[photos.length-1];
-
- /* show image */
+ const file = photos[index];
 
  document.getElementById("fanphoto").src =
- "/approved/"+latest+"?"+Date.now();
+ "/approved/"+file+"?"+Date.now();
 
- /* extract username + message from filename */
-
- const parts = latest.split("__");
+ const parts = file.split("__");
 
  const username = parts[0] || "";
  const message = parts[1] || "";
@@ -103,9 +107,21 @@ async function loadLatest(){
  document.getElementById("message").innerText =
  message.replaceAll("_"," ");
 
+ index++;
+
+ if(index >= photos.length){
+  index = 0;
+ }
+
 }
 
-setInterval(loadLatest,3000);
+/* reload list periodically */
+setInterval(loadPhotos,4000);
+
+/* rotate photos */
+setInterval(showNext,8000);
+
+loadPhotos();
 
 </script>
 
