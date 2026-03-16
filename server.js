@@ -1,3 +1,5 @@
+console.log("RUNNING OPTION B SERVER");
+
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -7,130 +9,139 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* --------------------------
-   CREATE UPLOAD FOLDER
+   CREATE FOLDERS
 -------------------------- */
 
-const uploadDir = path.join(__dirname, "uploads");
+const uploadsDir = path.join(__dirname,"uploads");
+const pendingDir = path.join(__dirname,"pending");
+const approvedDir = path.join(__dirname,"approved");
 
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+[uploadsDir,pendingDir,approvedDir].forEach(dir=>{
+ if(!fs.existsSync(dir)){
+  fs.mkdirSync(dir);
+ }
+});
 
 /* --------------------------
    STATIC FILES
 -------------------------- */
 
 app.use(express.static("public"));
-app.use("/uploads", express.static(uploadDir));
+app.use("/pending",express.static(pendingDir));
+app.use("/approved",express.static(approvedDir));
+
+app.use(express.urlencoded({extended:true}));
 
 /* --------------------------
    MULTER CONFIG
 -------------------------- */
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueName =
-            Date.now() +
-            "-" +
-            Math.floor(Math.random() * 1000000) +
-            path.extname(file.originalname);
-
-        cb(null, uniqueName);
-    }
+ destination:function(req,file,cb){
+  cb(null,uploadsDir);
+ },
+ filename:function(req,file,cb){
+  cb(null,Date.now()+path.extname(file.originalname));
+ }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({storage});
 
 /* --------------------------
-   UPLOAD ROUTE
+   UPLOAD PHOTO
 -------------------------- */
 
-app.post("/upload", upload.single("photo"), function (req, res) {
+app.post("/upload",upload.single("photo"),(req,res)=>{
 
-    if (!req.file) {
-        return res.status(400).send("No file uploaded");
-    }
+ const username = req.body.username || "Fan";
+ const message = req.body.message || "";
 
-    res.json({
-        success: true,
-        image: "/uploads/" + req.file.filename
-    });
+ const safeName = username.replace(/[^a-z0-9]/gi,"_");
+ const safeMessage = message.replace(/[^a-z0-9]/gi,"_");
 
-});
+ const newName =
+ safeName+"__"+safeMessage+"__"+Date.now()+
+ path.extname(req.file.originalname);
 
-/* --------------------------
-   GET LATEST IMAGE
--------------------------- */
+ const newPath = path.join(pendingDir,newName);
 
-app.get("/latest", function (req, res) {
+ fs.renameSync(req.file.path,newPath);
 
-    fs.readdir(uploadDir, function (err, files) {
-
-        if (err || files.length === 0) {
-            return res.json({ image: null });
-        }
-
-        const newest = files
-            .map(function(file){
-                return {
-                    name: file,
-                    time: fs.statSync(path.join(uploadDir, file)).mtime.getTime()
-                };
-            })
-            .sort(function(a,b){
-                return b.time - a.time;
-            })[0];
-
-        res.json({
-            image: "/uploads/" + newest.name
-        });
-
-    });
+ res.send("Photo submitted for approval!");
 
 });
 
 /* --------------------------
-   DELETE OLD FILES (6 HOURS)
+   APPROVE PHOTO
 -------------------------- */
 
-const MAX_AGE = 6 * 60 * 60 * 1000;
+app.get("/approve/:file",(req,res)=>{
 
-setInterval(function(){
+ const file = req.params.file;
 
-    fs.readdir(uploadDir, function(err, files){
+ const oldPath = path.join(pendingDir,file);
+ const newPath = path.join(approvedDir,file);
 
-        if (err) return;
+ if(!fs.existsSync(oldPath)){
+  return res.status(404).send("File not found");
+ }
 
-        files.forEach(function(file){
+ fs.renameSync(oldPath,newPath);
 
-            const filePath = path.join(uploadDir, file);
+ res.send("approved");
 
-            fs.stat(filePath, function(err, stat){
+});
 
-                if (err) return;
+/* --------------------------
+   LIST PENDING
+-------------------------- */
 
-                const age = Date.now() - stat.mtimeMs;
+app.get("/pending",(req,res)=>{
 
-                if (age > MAX_AGE) {
-                    fs.unlink(filePath, function(){});
-                }
+ fs.readdir(pendingDir,(err,files)=>{
 
-            });
+  if(err) return res.json([]);
 
-        });
+  const images = files.filter(file=>
+   file.endsWith(".jpg") ||
+   file.endsWith(".jpeg") ||
+   file.endsWith(".png") ||
+   file.endsWith(".webp")
+  );
 
-    });
+  res.json(images);
 
-}, 30 * 60 * 1000);
+ });
+
+});
+
+/* --------------------------
+   LIST APPROVED
+-------------------------- */
+
+app.get("/approved",(req,res)=>{
+
+ fs.readdir(approvedDir,(err,files)=>{
+
+  if(err) return res.json([]);
+
+  const images = files.filter(file=>
+   file.endsWith(".jpg") ||
+   file.endsWith(".jpeg") ||
+   file.endsWith(".png") ||
+   file.endsWith(".webp")
+  );
+
+  res.json(images);
+
+ });
+
+});
 
 /* --------------------------
    START SERVER
 -------------------------- */
 
-app.listen(PORT, function(){
-    console.log("Server started on port " + PORT);
+app.listen(PORT,()=>{
+ console.log("Server running on port "+PORT);
 });
-
