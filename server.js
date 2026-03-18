@@ -31,6 +31,7 @@ app.use("/pending",express.static(pendingDir));
 app.use("/approved",express.static(approvedDir));
 
 app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 
 /* --------------------------
    MULTER CONFIG
@@ -62,7 +63,7 @@ app.post("/upload",upload.single("photo"),(req,res)=>{
  const message = req.body.message || "";
 
  const safeName = username.replace(/\s+/g,"_").replace(/__/g,"_");
-const safeMessage = message.replace(/\s+/g,"_").replace(/__/g,"_");
+ const safeMessage = message.replace(/\s+/g,"_").replace(/__/g,"_");
 
  const newName =
  safeName+"__"+safeMessage+"__"+Date.now()+
@@ -94,6 +95,50 @@ app.get("/approve/:file",(req,res)=>{
  fs.renameSync(oldPath,newPath);
 
  res.send("approved");
+
+});
+
+/* --------------------------
+   DELETE PHOTO (NEW)
+-------------------------- */
+
+// Delete from approved
+app.delete("/delete/approved/:file",(req,res)=>{
+
+ const file = req.params.file;
+ const filePath = path.join(approvedDir,file);
+
+ if(!fs.existsSync(filePath)){
+  return res.status(404).send("File not found");
+ }
+
+ fs.unlink(filePath,(err)=>{
+  if(err){
+   console.error(err);
+   return res.status(500).send("Delete failed");
+  }
+  res.send("Deleted from approved");
+ });
+
+});
+
+// Delete from pending
+app.delete("/delete/pending/:file",(req,res)=>{
+
+ const file = req.params.file;
+ const filePath = path.join(pendingDir,file);
+
+ if(!fs.existsSync(filePath)){
+  return res.status(404).send("File not found");
+ }
+
+ fs.unlink(filePath,(err)=>{
+  if(err){
+   console.error(err);
+   return res.status(500).send("Delete failed");
+  }
+  res.send("Deleted from pending");
+ });
 
 });
 
