@@ -2,109 +2,163 @@
 <html>
 
 <head>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
 
-<style>
+    #photos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+    }
 
-body{
-font-family:Arial;
-background:#111;
-color:white;
-text-align:center;
-padding:40px;
-}
+    .card {
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+    }
 
-#photos{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:25px;
-}
+    img {
+      max-width: 200px;
+      border-radius: 8px;
+    }
 
-.card{
-background:#222;
-padding:15px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,.5);
-}
+    button {
+      margin-top: 10px;
+      margin-right: 8px;
+      border: none;
+      padding: 10px 18px;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-img{
-max-width:200px;
-border-radius:8px;
-}
+    .approve {
+      background: #00cc66;
+    }
 
-button{
-margin-top:10px;
-background:#00cc66;
-border:none;
-padding:10px 18px;
-color:white;
-font-size:16px;
-border-radius:6px;
-cursor:pointer;
-}
+    .approve:hover {
+      background: #00aa55;
+    }
 
-button:hover{
-background:#00aa55;
-}
+    .delete {
+      background: #cc3333;
+    }
 
-</style>
-
+    .delete:hover {
+      background: #aa2222;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>Pending Photos</h2>
+  <h2>Pending Photos</h2>
+  <div id="photos"></div>
 
-<div id="photos"></div>
+  <script>
+    const API_BASE = ""; 
+    // 👉 If using Render, replace with:
+    // const API_BASE = "https://your-backend.onrender.com";
 
-<script>
+    async function loadPhotos() {
+      try {
+        const res = await fetch(`${API_BASE}/pending`);
+        const photos = await res.json();
 
-async function loadPhotos(){
+        console.log("Loaded photos:", photos);
 
- const res = await fetch("/pending");
- const photos = await res.json();
+        const container = document.getElementById("photos");
+        container.innerHTML = "";
 
- const container = document.getElementById("photos");
- container.innerHTML = "";
+        if (!Array.isArray(photos)) {
+          console.error("Invalid response:", photos);
+          return;
+        }
 
- photos.forEach(file => {
+        photos.forEach(file => {
 
-  const card = document.createElement("div");
-  card.className = "card";
+          if (!file || typeof file !== "string") return;
 
-  const img = document.createElement("img");
-  img.src="/pending/"+file;
+          const safeFile = encodeURIComponent(file);
 
-  const btn = document.createElement("button");
-  btn.innerText="Approve";
+          const card = document.createElement("div");
+          card.className = "card";
 
-  btn.onclick = async () => {
+          const img = document.createElement("img");
+          img.src = `${API_BASE}/pending/${safeFile}`;
 
-   const response = await fetch("/approve/" + encodeURIComponent(file));
+          // ✅ APPROVE BUTTON
+          const approveBtn = document.createElement("button");
+          approveBtn.className = "approve";
+          approveBtn.innerText = "Approve";
 
-   if(response.ok){
+          approveBtn.onclick = async () => {
+            try {
+              const response = await fetch(`${API_BASE}/approve/${safeFile}`, {
+                method: "POST"
+              });
+
+              if (response.ok) {
+                loadPhotos();
+              } else {
+                alert("Approval failed");
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Error approving photo");
+            }
+          };
+
+          // ❌ DELETE BUTTON
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete";
+          deleteBtn.innerText = "Delete";
+
+          deleteBtn.onclick = async () => {
+            try {
+              const response = await fetch(`${API_BASE}/delete/${safeFile}`, {
+                method: "DELETE"
+              });
+
+              if (response.ok) {
+                loadPhotos();
+              } else {
+                alert("Delete failed");
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Error deleting photo");
+            }
+          };
+
+          card.appendChild(img);
+          card.appendChild(approveBtn);
+          card.appendChild(deleteBtn);
+
+          container.appendChild(card);
+
+        });
+
+      } catch (err) {
+        console.error("Load error:", err);
+      }
+    }
+
+    // 🔁 Auto refresh every 5 seconds
+    setInterval(loadPhotos, 5000);
+
+    // 🚀 Initial load
     loadPhotos();
-   } else {
-    alert("Approval failed");
-   }
-
-  };
-
-  card.appendChild(img);
-  card.appendChild(btn);
-
-  container.appendChild(card);
-
- });
-
-}
-
-/* refresh pending list every 5 seconds */
-setInterval(loadPhotos,5000);
-
-loadPhotos();
-
-</script>
+  </script>
 
 </body>
 
