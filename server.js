@@ -99,7 +99,7 @@ app.get("/approve/:file",(req,res)=>{
 });
 
 /* --------------------------
-   DELETE PHOTO (NEW)
+   DELETE PHOTO
 -------------------------- */
 
 // Delete from approved
@@ -143,7 +143,21 @@ app.delete("/delete/pending/:file",(req,res)=>{
 });
 
 /* --------------------------
-   LIST PENDING
+   HELPER: SORT BY TIMESTAMP
+-------------------------- */
+
+function sortByNewest(files){
+ return files.sort((a,b)=>{
+  const getTime = (name)=>{
+   const parts = name.split("__");
+   return parseInt(parts[parts.length - 1]);
+  };
+  return getTime(b) - getTime(a);
+ });
+}
+
+/* --------------------------
+   LIST PENDING (NEWEST FIRST)
 -------------------------- */
 
 app.get("/pending",(req,res)=>{
@@ -159,14 +173,14 @@ app.get("/pending",(req,res)=>{
    file.endsWith(".webp")
   );
 
-  res.json(images);
+  res.json(sortByNewest(images));
 
  });
 
 });
 
 /* --------------------------
-   LIST APPROVED
+   LIST APPROVED (NEWEST FIRST)
 -------------------------- */
 
 app.get("/approved",(req,res)=>{
@@ -182,7 +196,7 @@ app.get("/approved",(req,res)=>{
    file.endsWith(".webp")
   );
 
-  res.json(images);
+  res.json(sortByNewest(images));
 
  });
 
