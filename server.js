@@ -83,8 +83,7 @@ app.post("/upload",upload.single("photo"),(req,res)=>{
 
 app.get("/approve/:file",(req,res)=>{
 
- const file = req.params.file;
-
+const file = decodeURIComponent(req.params.file);
  const oldPath = path.join(pendingDir,file);
  const newPath = path.join(approvedDir,file);
 
