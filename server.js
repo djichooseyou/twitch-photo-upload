@@ -55,6 +55,14 @@ app.get("/approved", (req, res) => {
     res.json(files);
   });
 });
+app.get("/pending", (req, res) => {
+  fs.readdir(pendingDir, (err, files) => {
+    if (err) return res.json([]);
+    res.json(files);
+  });
+});
+app.use("/pending", express.static(pendingDir));
+
 
 app.use("/approved", express.static(approvedDir));
 
