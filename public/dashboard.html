@@ -91,18 +91,18 @@ async function loadDashboard(){
 
         approveBtn.onclick = async () => {
 
-          const res = await fetch(
-            API_BASE + "/approve/" + encodeURIComponent(file),
-            { method: "POST" }
-          );
+  const res = await fetch(
+    API_BASE + "/approve/" + file,
+    { method: "POST" }
+  );
 
-          if(res.ok){
-            loadDashboard();
-          } else {
-            alert("Approve failed");
-          }
+  if(res.ok){
+    loadDashboard();
+  } else {
+    alert("Approve failed");
+  }
 
-        };
+};
 
         // ❌ DECLINE BUTTON (DELETE)
         const declineBtn = document.createElement("button");
@@ -111,20 +111,20 @@ async function loadDashboard(){
 
         declineBtn.onclick = async () => {
 
-          if(!confirm("Delete this photo?")) return;
+  if(!confirm("Delete this photo?")) return;
 
-          const res = await fetch(
-            API_BASE + "/delete/" + encodeURIComponent(file),
-            { method: "DELETE" }
-          );
+  const res = await fetch(
+    API_BASE + "/delete/" + file,
+    { method: "DELETE" }
+  );
 
-          if(res.ok){
-            loadDashboard();
-          } else {
-            alert("Delete failed");
-          }
+  if(res.ok){
+    loadDashboard();
+  } else {
+    alert("Delete failed");
+  }
 
-        };
+};
 
         card.appendChild(img);
         card.appendChild(approveBtn);
