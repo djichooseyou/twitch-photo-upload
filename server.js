@@ -41,17 +41,16 @@ const upload = multer({ storage });
 
 app.use(express.json());
 
+// ✅ THIS IS THE FIX
+app.use(express.static(path.join(__dirname, "public")));
+
 // Serve image folders
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
-
 /* --------------------------
    ROOT ROUTE (FIXES RENDER)
 -------------------------- */
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "dashboard.html"));
-});
 
 /* --------------------------
    ROUTES
