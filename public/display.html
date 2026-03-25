@@ -98,12 +98,18 @@ OSF PHOTO WALL
 
 <script>
 
+const API_BASE = "https://twitch-photo-upload.onrender.com";
+
 let photos = [];
 let index = 0;
 
 async function loadPhotos(){
- const res = await fetch("/approved");
- photos = await res.json();
+ try {
+  const res = await fetch(API_BASE + "/approved");
+  photos = await res.json();
+ } catch (err){
+  console.log("Error loading photos", err);
+ }
 }
 
 function showNext(){
@@ -113,7 +119,7 @@ function showNext(){
  const file = photos[index];
 
  document.getElementById("fanphoto").src =
- "/approved/"+file+"?"+Date.now();
+ API_BASE + "/approved/" + file + "?" + Date.now();
 
  const cleanName = file.substring(0, file.lastIndexOf("."));
  const parts = cleanName.split("__");
@@ -125,7 +131,6 @@ function showNext(){
  // remove timestamp
  messageRaw = messageRaw.replace(/_\d+$/, "");
 
- // 🔥 decode message (restores #, emojis, spaces, etc.)
  let message = "";
  try {
   message = decodeURIComponent(messageRaw);
