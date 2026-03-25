@@ -7,126 +7,138 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* --------------------------
-   CREATE FOLDERS
+CREATE FOLDERS
 -------------------------- */
 
 const pendingDir = path.join(__dirname, "pending");
 const approvedDir = path.join(__dirname, "approved");
 
 [pendingDir, approvedDir].forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+if (!fs.existsSync(dir)) {
+fs.mkdirSync(dir);
+}
 });
 
 /* --------------------------
-   MULTER (SAFE FILENAMES)
+MULTER SETUP (UPLOAD)
 -------------------------- */
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, pendingDir);
-  },
-  filename: (req, file, cb) => {
-    const safeName = file.originalname
-      .replace(/[^a-zA-Z0-9.-]/g, "_"); // removes #, spaces, emojis, etc.
-
-    cb(null, Date.now() + "_" + safeName);
-  }
+destination: (req, file, cb) => {
+cb(null, pendingDir);
+},
+filename: (req, file, cb) => {
+const safeName = Date.now() + "_" + file.originalname;
+cb(null, safeName);
+}
 });
 
 const upload = multer({ storage });
 
 /* --------------------------
-   MIDDLEWARE
+HELPERS
 -------------------------- */
 
-app.use(express.json());
-
-// ✅ THIS IS THE FIX
-app.use(express.static(path.join(__dirname, "public")));
-
-// Serve image folders
-app.use("/pending", express.static(pendingDir));
-app.use("/approved", express.static(approvedDir));
-/* --------------------------
-   ROOT ROUTE (FIXES RENDER)
--------------------------- */
-
+function fullyDecode(str) {
+try {
+return decodeURIComponent(decodeURIComponent(str));
+} catch {
+return decodeURIComponent(str);
+}
+}
 
 /* --------------------------
-   ROUTES
+ROUTES
 -------------------------- */
 
 // Upload
 app.post("/upload", upload.single("photo"), (req, res) => {
-  res.json({ success: true });
+res.send("Upload successful");
 });
 
 // Get pending files
 app.get("/pending", (req, res) => {
-  fs.readdir(pendingDir, (err, files) => {
-    if (err) return res.status(500).send("Error reading pending folder");
-    res.json(files);
-  });
+fs.readdir(pendingDir, (err, files) => {
+if (err) return res.status(500).send("Error reading folder");
+res.json(files);
+});
 });
 
-// Get approved files
-app.get("/approved", (req, res) => {
-  fs.readdir(approvedDir, (err, files) => {
-    if (err) return res.status(500).send("Error reading approved folder");
-    res.json(files);
-  });
-});
+// Serve pending images
+app.use("/pending", express.static(pendingDir));
+
+// Serve approved images
+app.use("/approved", express.static(approvedDir));
 
 /* --------------------------
-   APPROVE IMAGE
+APPROVE (FIXED)
 -------------------------- */
 
-app.get("/approve/:file", (req, res) => {
-  const file = decodeURIComponent(req.params.file);
+app.post("/approve/:filename", (req, res) => {
+try {
+const filename = fullyDecode(req.params.filename);
 
-  const oldPath = path.join(pendingDir, file);
-  const newPath = path.join(approvedDir, file);
+```
+const oldPath = path.join(pendingDir, filename);
+const newPath = path.join(approvedDir, filename);
 
-  if (!fs.existsSync(oldPath)) {
-    return res.status(404).send("File not found");
+if (!fs.existsSync(oldPath)) {
+  console.log("NOT FOUND:", oldPath);
+  return res.status(404).send("File not found");
+}
+
+fs.rename(oldPath, newPath, (err) => {
+  if (err) {
+    console.error("MOVE ERROR:", err);
+    return res.status(500).send("Move failed");
   }
 
-  fs.rename(oldPath, newPath, err => {
-    if (err) return res.status(500).send("Error moving file");
-    res.send("Approved");
-  });
+  res.sendStatus(200);
+});
+```
+
+} catch (err) {
+console.error("APPROVE ERROR:", err);
+res.status(500).send("Server error");
+}
 });
 
 /* --------------------------
-   DELETE IMAGE
+DELETE (FIXED)
 -------------------------- */
 
-app.delete("/delete/:folder/:file", (req, res) => {
-  const folder = req.params.folder;
-  const file = decodeURIComponent(req.params.file);
+app.delete("/delete/:filename", (req, res) => {
+try {
+const filename = fullyDecode(req.params.filename);
 
-  let dir;
+```
+const filePath = path.join(pendingDir, filename);
 
-  if (folder === "pending") dir = pendingDir;
-  else if (folder === "approved") dir = approvedDir;
-  else return res.status(400).send("Invalid folder");
+if (!fs.existsSync(filePath)) {
+  console.log("DELETE NOT FOUND:", filePath);
+  return res.status(404).send("File not found");
+}
 
-  const filePath = path.join(dir, file);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("File not found");
+fs.unlink(filePath, (err) => {
+  if (err) {
+    console.error("DELETE ERROR:", err);
+    return res.status(500).send("Delete failed");
   }
 
-  fs.unlink(filePath, err => {
-    if (err) return res.status(500).send("Delete failed");
-    res.send("Deleted");
-  });
+  res.sendStatus(200);
+});
+```
+
+} catch (err) {
+console.error("DELETE ROUTE ERROR:", err);
+res.status(500).send("Server error");
+}
 });
 
 /* --------------------------
-   START SERVER
+START SERVER
 -------------------------- */
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+console.log("Server running on port " + PORT);
 });
