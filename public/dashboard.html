@@ -92,9 +92,8 @@ async function loadDashboard(){
         approveBtn.onclick = async () => {
 
           const res = await fetch(
-              API_BASE + "/approve/" + encodeURIComponent(file),
-            { method: "POST" }
-          );
+            API_BASE + "/approve/" + encodeURIComponent(file)
+          ); // ✅ FIX: removed POST
 
           if(res.ok){
             loadDashboard();
