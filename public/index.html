@@ -1,41 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>DJICHOOSEYOU LIVE</title>
+
+<style>
+
+body{
+background:black;
+margin:0;
+font-family:Arial;
+color:white;
+text-align:center;
+}
+
+h1{
+margin-top:60px;
+font-size:64px;
+letter-spacing:3px;
+}
+
+.subtitle{
+font-size:28px;
+margin-bottom:40px;
+opacity:0.8;
+}
+
+.container{
+width:500px;
+margin:auto;
+padding:40px;
+border-radius:20px;
+background:linear-gradient(135deg,#1a1a1a,#2a2a2a);
+box-shadow:0 0 30px rgba(255,255,255,0.15);
+}
+
+label{
+display:block;
+margin-top:20px;
+font-size:22px;
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:10px;
+border-radius:12px;
+border:none;
+font-size:18px;
+}
+
+button{
+margin-top:25px;
+padding:16px 40px;
+border:none;
+border-radius:14px;
+background:#ff0055;
+color:white;
+font-size:22px;
+cursor:pointer;
+}
+
+button.success{
+background:green;
+}
+
+button.error{
+background:red;
+}
+
+.note{
+margin-top:20px;
+opacity:0.6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>DJICHOOSEYOU LIVE</h1>
+<div class="subtitle">Upload Your Photo To The Stream</div>
+
+<div class="container">
+
+<form id="uploadForm">
+
+<label>Your Name or Twitch Username</label>
+<input name="username" required>
+
+<label>Message for the stream (optional)</label>
+<input name="message">
+
+<label>Select Photo</label>
+<input type="file" name="photo" accept="image/*" required>
+
+<button type="submit" id="submitBtn">Upload</button>
+
+</form>
+
+<div class="note">Your photo may appear live on the stream!</div>
+
+</div>
+
 <script>
 
-const API_BASE = "https://twitch-photo-upload.onrender.com";
+document.addEventListener("DOMContentLoaded", () => {
 
-// 🔥 THESE WERE MISSING
-const form = document.getElementById("uploadForm");
-const btn = document.getElementById("submitBtn");
+ const API_BASE = "https://twitch-photo-upload.onrender.com";
 
-form.addEventListener("submit", async (e) => {
- e.preventDefault();
+ const form = document.getElementById("uploadForm");
+ const btn = document.getElementById("submitBtn");
 
- btn.innerText = "Uploading...";
- btn.classList.remove("error","success");
+ form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
- const formData = new FormData(form);
+  btn.innerText = "Uploading...";
+  btn.classList.remove("error","success");
 
- try {
+  const formData = new FormData(form);
 
-  const res = await fetch(API_BASE + "/upload", {
-    method: "POST",
-    body: formData
-  });
+  try {
 
-  if(res.ok){
-    btn.innerText = "Uploaded!";
-    btn.classList.add("success");
-    form.reset();
-  } else {
-    btn.innerText = "Error";
-    btn.classList.add("error");
+   const res = await fetch(API_BASE + "/upload", {
+     method: "POST",
+     body: formData
+   });
+
+   if(res.ok){
+     btn.innerText = "Uploaded!";
+     btn.classList.add("success");
+     form.reset();
+   } else {
+     btn.innerText = "Error";
+     btn.classList.add("error");
+   }
+
+  } catch(err){
+   console.error(err);
+   btn.innerText = "Error";
+   btn.classList.add("error");
   }
 
- } catch(err){
-  console.error(err); // helps debug if needed
-  btn.innerText = "Error";
-  btn.classList.add("error");
- }
+ });
 
 });
 
 </script>
+
+</body>
+</html>
