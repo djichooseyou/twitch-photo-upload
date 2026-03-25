@@ -1,4 +1,10 @@
+<script>
+
 const API_BASE = "https://twitch-photo-upload.onrender.com";
+
+// 🔥 THESE WERE MISSING
+const form = document.getElementById("uploadForm");
+const btn = document.getElementById("submitBtn");
 
 form.addEventListener("submit", async (e) => {
  e.preventDefault();
@@ -25,8 +31,11 @@ form.addEventListener("submit", async (e) => {
   }
 
  } catch(err){
+  console.error(err); // helps debug if needed
   btn.innerText = "Error";
   btn.classList.add("error");
  }
 
 });
+
+</script>
