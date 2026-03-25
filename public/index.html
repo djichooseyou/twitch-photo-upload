@@ -6,60 +6,81 @@
     body {
       background: #000;
       color: white;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       text-align: center;
     }
 
     h1 {
-      margin-top: 60px;
-      font-size: 36px;
+      margin-top: 90px;
+      font-size: 48px;
       letter-spacing: 2px;
+      font-weight: bold;
     }
 
     h2 {
+      margin-top: 10px;
       margin-bottom: 30px;
       font-weight: normal;
-      color: #ccc;
+      color: #ddd;
+      font-size: 20px;
     }
 
     .card {
-      background: #1a1a1a;
-      padding: 30px;
+      background: #1c1c1c;
+      padding: 35px 30px;
       border-radius: 15px;
-      width: 320px;
+      width: 360px;
       margin: auto;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
     }
 
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
       border-radius: 6px;
       border: none;
       font-size: 14px;
+      background: #e6e6e6;
+      color: #000;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+      margin-bottom: 20px;
     }
 
     button {
       background: #ff0055;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 14px 28px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
+      font-weight: bold;
       margin-top: 10px;
     }
 
+    button:hover {
+      opacity: 0.9;
+    }
+
     button:disabled {
-      background: gray;
+      background: #777;
       cursor: not-allowed;
     }
 
     .small {
       margin-top: 15px;
       color: #888;
-      font-size: 12px;
+      font-size: 13px;
     }
   </style>
 </head>
@@ -72,21 +93,20 @@
 
   <form id="uploadForm" enctype="multipart/form-data">
 
-    <p>Your Name or Twitch Username</p>
+    <label>Your Name or Twitch Username</label>
     <input type="text" name="name" placeholder="Enter your name" required>
 
-    <p>Message for the stream (optional)</p>
+    <label>Message for the stream (optional)</label>
     <input type="text" name="message" placeholder="Say something!">
 
-    <p>Select Photo</p>
+    <label>Select Photo</label>
     <input type="file" name="photo" required>
 
-    <br>
     <button type="submit">Upload Photo</button>
 
   </form>
 
-  <p class="small">Your photo may appear live on the stream!</p>
+  <div class="small">Your photo may appear live on the stream!</div>
 
 </div>
 
