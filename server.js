@@ -29,15 +29,16 @@ const storage = multer.diskStorage({
 
     const ext = path.extname(file.originalname);
 
+    // Clean username (safe for display)
     const username = (req.body.username || "user")
       .replace(/\s+/g, "")
       .replace(/[^a-zA-Z0-9]/g, "");
 
-    const message = (req.body.message || "no_message")
-      .replace(/\s+/g, "_")
-      .replace(/[^a-zA-Z0-9_]/g, "");
+    // 🔥 Encode message safely (handles #, emojis, spaces, etc.)
+    const rawMessage = req.body.message || "no message";
+    const encodedMessage = encodeURIComponent(rawMessage);
 
-    const filename = `${username}__${message}_${Date.now()}${ext}`;
+    const filename = `${username}__${encodedMessage}_${Date.now()}${ext}`;
 
     cb(null, filename);
   }
@@ -73,7 +74,7 @@ app.get("/approved", (req, res) => {
 // Serve approved images
 app.use("/approved", express.static(approvedDir));
 
-// Approve endpoint (move from pending → approved)
+// Approve (move file)
 app.post("/approve/:file", (req, res) => {
 
   const file = req.params.file;
