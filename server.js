@@ -1,5 +1,3 @@
-console.log("RUNNING OPTION B SERVER");
-
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -12,199 +10,117 @@ const PORT = process.env.PORT || 3000;
    CREATE FOLDERS
 -------------------------- */
 
-const uploadsDir = path.join(__dirname,"uploads");
-const pendingDir = path.join(__dirname,"pending");
-const approvedDir = path.join(__dirname,"approved");
+const uploadsDir = path.join(__dirname, "uploads");
+const pendingDir = path.join(__dirname, "pending");
+const approvedDir = path.join(__dirname, "approved");
 
-[uploadsDir,pendingDir,approvedDir].forEach(dir=>{
- if(!fs.existsSync(dir)){
-  fs.mkdirSync(dir);
- }
+[uploadsDir, pendingDir, approvedDir].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 });
 
 /* --------------------------
-   STATIC FILES
--------------------------- */
-
-app.use(express.static("public"));
-app.use("/pending",express.static(pendingDir));
-app.use("/approved",express.static(approvedDir));
-
-app.use(express.urlencoded({extended:true}));
-app.use(express.json());
-
-/* --------------------------
-   MULTER CONFIG
+   MULTER STORAGE (SAFE NAMES)
 -------------------------- */
 
 const storage = multer.diskStorage({
- destination:function(req,file,cb){
-  cb(null,uploadsDir);
- },
- filename:function(req,file,cb){
-  cb(null,Date.now()+path.extname(file.originalname));
- }
-});
+  destination: (req, file, cb) => {
+    cb(null, pendingDir);
+  },
+  filename: (req, file, cb) => {
+    const safeName = file.originalname
+      .replace(/[^a-zA-Z0-9.-]/g, "_"); // REMOVE BAD CHARACTERS
 
-const upload = multer({
- storage,
- limits:{
-  fileSize: 10 * 1024 * 1024
- }
-});
-
-/* --------------------------
-   UPLOAD PHOTO
--------------------------- */
-
-app.post("/upload",upload.single("photo"),(req,res)=>{
-
- const username = req.body.username || "Fan";
- const message = req.body.message || "";
-
- const safeName = username.replace(/\s+/g,"_").replace(/__/g,"_");
- const safeMessage = message.replace(/\s+/g,"_").replace(/__/g,"_");
-
- const newName =
- safeName+"__"+safeMessage+"__"+Date.now()+
- path.extname(req.file.originalname);
-
- const newPath = path.join(pendingDir,newName);
-
- fs.renameSync(req.file.path,newPath);
-
- res.send("Photo submitted for approval!");
-
-});
-
-/* --------------------------
-   APPROVE PHOTO
--------------------------- */
-
-app.get("/approve/:file",(req,res)=>{
-
-const file = decodeURIComponent(req.params.file);
- const oldPath = path.join(pendingDir,file);
- const newPath = path.join(approvedDir,file);
-
- if(!fs.existsSync(oldPath)){
-  return res.status(404).send("File not found");
- }
-
- fs.renameSync(oldPath,newPath);
-
- res.send("approved");
-
-});
-
-/* --------------------------
-   DELETE PHOTO
--------------------------- */
-
-// Delete from approved
-app.delete("/delete/approved/:file",(req,res)=>{
-
- const file = req.params.file;
- const filePath = path.join(approvedDir,file);
-
- if(!fs.existsSync(filePath)){
-  return res.status(404).send("File not found");
- }
-
- fs.unlink(filePath,(err)=>{
-  if(err){
-   console.error(err);
-   return res.status(500).send("Delete failed");
+    cb(null, Date.now() + "_" + safeName);
   }
-  res.send("Deleted from approved");
- });
-
 });
 
-// Delete from pending
-app.delete("/delete/pending/:file",(req,res)=>{
+const upload = multer({ storage });
 
- const file = req.params.file;
- const filePath = path.join(pendingDir,file);
+/* --------------------------
+   MIDDLEWARE
+-------------------------- */
 
- if(!fs.existsSync(filePath)){
-  return res.status(404).send("File not found");
- }
+app.use(express.json());
 
- fs.unlink(filePath,(err)=>{
-  if(err){
-   console.error(err);
-   return res.status(500).send("Delete failed");
+// Serve images
+app.use("/pending", express.static(pendingDir));
+app.use("/approved", express.static(approvedDir));
+
+/* --------------------------
+   ROUTES
+-------------------------- */
+
+// Upload
+app.post("/upload", upload.single("photo"), (req, res) => {
+  res.json({ success: true });
+});
+
+// Get pending files
+app.get("/pending", (req, res) => {
+  fs.readdir(pendingDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading pending folder");
+    res.json(files);
+  });
+});
+
+// Get approved files
+app.get("/approved", (req, res) => {
+  fs.readdir(approvedDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading approved folder");
+    res.json(files);
+  });
+});
+
+/* --------------------------
+   APPROVE IMAGE
+-------------------------- */
+
+app.get("/approve/:file", (req, res) => {
+  const file = decodeURIComponent(req.params.file);
+
+  const oldPath = path.join(pendingDir, file);
+  const newPath = path.join(approvedDir, file);
+
+  if (!fs.existsSync(oldPath)) {
+    return res.status(404).send("File not found");
   }
-  res.send("Deleted from pending");
- });
 
+  fs.rename(oldPath, newPath, err => {
+    if (err) return res.status(500).send("Error moving file");
+    res.send("Approved");
+  });
 });
 
 /* --------------------------
-   HELPER: SORT BY TIMESTAMP
+   DELETE IMAGE
 -------------------------- */
 
-function sortByNewest(files){
- return files.sort((a,b)=>{
-  const getTime = (name)=>{
-   const parts = name.split("__");
-   return parseInt(parts[parts.length - 1]);
-  };
-  return getTime(b) - getTime(a);
- });
-}
+app.delete("/delete/:folder/:file", (req, res) => {
+  const folder = req.params.folder;
+  const file = decodeURIComponent(req.params.file);
 
-/* --------------------------
-   LIST PENDING (NEWEST FIRST)
--------------------------- */
+  let dir;
 
-app.get("/pending",(req,res)=>{
+  if (folder === "pending") dir = pendingDir;
+  else if (folder === "approved") dir = approvedDir;
+  else return res.status(400).send("Invalid folder");
 
- fs.readdir(pendingDir,(err,files)=>{
+  const filePath = path.join(dir, file);
 
-  if(err) return res.json([]);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("File not found");
+  }
 
-  const images = files.filter(file=>
-   file.endsWith(".jpg") ||
-   file.endsWith(".jpeg") ||
-   file.endsWith(".png") ||
-   file.endsWith(".webp")
-  );
-
-  res.json(sortByNewest(images));
-
- });
-
-});
-
-/* --------------------------
-   LIST APPROVED (NEWEST FIRST)
--------------------------- */
-
-app.get("/approved",(req,res)=>{
-
- fs.readdir(approvedDir,(err,files)=>{
-
-  if(err) return res.json([]);
-
-  const images = files.filter(file=>
-   file.endsWith(".jpg") ||
-   file.endsWith(".jpeg") ||
-   file.endsWith(".png") ||
-   file.endsWith(".webp")
-  );
-
-  res.json(sortByNewest(images));
-
- });
-
+  fs.unlink(filePath, err => {
+    if (err) return res.status(500).send("Delete failed");
+    res.send("Deleted");
+  });
 });
 
 /* --------------------------
    START SERVER
 -------------------------- */
 
-app.listen(PORT,()=>{
- console.log("Server running on port "+PORT);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
