@@ -85,36 +85,55 @@ app.use("/approved", express.static(approvedDir));
 app.use("/pending", express.static(pendingDir));
 
 // ✅ APPROVE (NO DECODE — IMPORTANT)
-app.post("/approve/:file", (req, res) => {
+app.post("/approve/:filename", (req, res) => {
+  try {
+    const filename = decodeURIComponent(req.params.filename);
 
-  const file = decodeURIComponent(req.params.file);
+    const oldPath = path.join(pendingDir, filename);
+    const newPath = path.join(approvedDir, filename);
 
-  const from = path.join(pendingDir, file);
-  const to = path.join(approvedDir, file);
+    if (!fs.existsSync(oldPath)) {
+      return res.status(404).send("File not found");
+    }
 
-  if (!fs.existsSync(from)) {
-    return res.status(404).send("File not found");
+    fs.rename(oldPath, newPath, (err) => {
+      if (err) {
+        console.error("MOVE ERROR:", err);
+        return res.status(500).send("Move failed");
+      }
+
+      res.sendStatus(200);
+    });
+
+  } catch (err) {
+    console.error("APPROVE ERROR:", err);
+    res.status(500).send("Server error");
   }
-
-  fs.renameSync(from, to);
-
-  res.send("Approved");
 });
 
 // ❌ DELETE (DECLINE)
-app.delete("/delete/:file", (req, res) => {
+app.delete("/delete/:filename", (req, res) => {
+  try {
+    const filename = decodeURIComponent(req.params.filename);
+    const filePath = path.join(pendingDir, filename);
 
-  const file = decodeURIComponent(req.params.file);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send("File not found");
+    }
 
-  const filePath = path.join(pendingDir, file);
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error("DELETE ERROR:", err);
+        return res.status(500).send("Delete failed");
+      }
 
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("File not found");
+      res.sendStatus(200);
+    });
+
+  } catch (err) {
+    console.error("DELETE ROUTE ERROR:", err);
+    res.status(500).send("Server error");
   }
-
-  fs.unlinkSync(filePath);
-
-  res.send("Deleted");
 });
 
 /* --------------------------
