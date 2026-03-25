@@ -87,7 +87,7 @@ app.use("/pending", express.static(pendingDir));
 // ✅ APPROVE (NO DECODE — IMPORTANT)
 app.post("/approve/:file", (req, res) => {
 
-  const file = req.params.file;
+  const file = decodeURIComponent(req.params.file);
 
   const from = path.join(pendingDir, file);
   const to = path.join(approvedDir, file);
@@ -104,7 +104,7 @@ app.post("/approve/:file", (req, res) => {
 // ❌ DELETE (DECLINE)
 app.delete("/delete/:file", (req, res) => {
 
-  const file = req.params.file;
+  const file = decodeURIComponent(req.params.file);
 
   const filePath = path.join(pendingDir, file);
 
