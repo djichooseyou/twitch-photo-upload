@@ -92,7 +92,7 @@ async function loadDashboard(){
         approveBtn.onclick = async () => {
 
           const res = await fetch(
-            API_BASE + "/approve/" + file,
+              API_BASE + "/approve/" + encodeURIComponent(file),
             { method: "POST" }
           );
 
@@ -114,7 +114,7 @@ async function loadDashboard(){
           if(!confirm("Delete this photo?")) return;
 
           const res = await fetch(
-            API_BASE + "/delete/" + file,
+            API_BASE + "/delete/" + encodeURIComponent(file),
             { method: "DELETE" }
           );
 
