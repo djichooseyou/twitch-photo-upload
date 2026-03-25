@@ -18,8 +18,6 @@ font-family:Arial;
 color:white;
 }
 
-/* Photo Frame */
-
 .photo-frame{
 width:420px;
 height:740px;
@@ -30,8 +28,6 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
-
-/* Title */
 
 .frame-title{
 width:100%;
@@ -45,8 +41,6 @@ color:white;
 border-bottom:2px solid #ffffff;
 text-shadow:0 0 12px rgba(255,255,255,0.9);
 }
-
-/* Photo Area */
 
 .photo-inner{
 flex:1;
@@ -63,8 +57,6 @@ height:100%;
 object-fit:contain;
 }
 
-/* Username */
-
 .username{
 text-align:center;
 font-size:40px;
@@ -72,8 +64,6 @@ margin-top:14px;
 font-weight:bold;
 text-shadow:0 0 12px rgba(255,255,255,0.8);
 }
-
-/* Message */
 
 .message{
 text-align:center;
@@ -108,16 +98,10 @@ OSF PHOTO WALL
 let photos = [];
 let index = 0;
 
-/* Load approved photos */
-
 async function loadPhotos(){
-
  const res = await fetch("/approved");
  photos = await res.json();
-
 }
-
-/* Rotate photos */
 
 function showNext(){
 
@@ -128,14 +112,22 @@ function showNext(){
  document.getElementById("fanphoto").src =
  "/approved/"+file+"?"+Date.now();
 
- const parts = file.split("__");
+ const cleanName = file.substring(0, file.lastIndexOf("."));
+
+ const parts = cleanName.split("__");
 
  const username = parts[0] || "";
- const message = parts[1] || "";
+
+ // everything AFTER username becomes message
+ let messageRaw = parts.slice(1).join("__");
+
+ // remove timestamp (_123456789)
+ messageRaw = messageRaw.replace(/_\d+$/, "");
+
+ const message = messageRaw.replaceAll("_"," ");
 
  document.getElementById("username").innerText = "@"+username;
- document.getElementById("message").innerText =
- message.replaceAll("_"," ");
+ document.getElementById("message").innerText = message;
 
  index++;
 
@@ -145,12 +137,7 @@ function showNext(){
 
 }
 
-/* refresh photo list */
-
 setInterval(loadPhotos,4000);
-
-/* rotate images */
-
 setInterval(showNext,8000);
 
 loadPhotos();
