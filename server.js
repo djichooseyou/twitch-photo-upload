@@ -40,7 +40,7 @@ const upload = multer({ storage });
    MIDDLEWARE
 -------------------------- */
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "public")));
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
 
