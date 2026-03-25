@@ -70,6 +70,9 @@ text-align:center;
 font-size:28px;
 opacity:0.9;
 padding-bottom:16px;
+padding-left:10px;
+padding-right:10px;
+word-wrap:break-word;
 }
 
 </style>
@@ -113,18 +116,22 @@ function showNext(){
  "/approved/"+file+"?"+Date.now();
 
  const cleanName = file.substring(0, file.lastIndexOf("."));
-
  const parts = cleanName.split("__");
 
  const username = parts[0] || "";
 
- // everything AFTER username becomes message
  let messageRaw = parts.slice(1).join("__");
 
- // remove timestamp (_123456789)
+ // remove timestamp
  messageRaw = messageRaw.replace(/_\d+$/, "");
 
- const message = messageRaw.replaceAll("_"," ");
+ // 🔥 decode message (restores #, emojis, spaces, etc.)
+ let message = "";
+ try {
+  message = decodeURIComponent(messageRaw);
+ } catch {
+  message = messageRaw;
+ }
 
  document.getElementById("username").innerText = "@"+username;
  document.getElementById("message").innerText = message;
