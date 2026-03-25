@@ -10,16 +10,15 @@ const PORT = process.env.PORT || 3000;
    CREATE FOLDERS
 -------------------------- */
 
-const uploadsDir = path.join(__dirname, "uploads");
 const pendingDir = path.join(__dirname, "pending");
 const approvedDir = path.join(__dirname, "approved");
 
-[uploadsDir, pendingDir, approvedDir].forEach(dir => {
+[pendingDir, approvedDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 });
 
 /* --------------------------
-   MULTER STORAGE (SAFE NAMES)
+   MULTER (SAFE FILENAMES)
 -------------------------- */
 
 const storage = multer.diskStorage({
@@ -28,7 +27,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const safeName = file.originalname
-      .replace(/[^a-zA-Z0-9.-]/g, "_"); // REMOVE BAD CHARACTERS
+      .replace(/[^a-zA-Z0-9.-]/g, "_"); // removes #, spaces, emojis, etc.
 
     cb(null, Date.now() + "_" + safeName);
   }
@@ -46,11 +45,14 @@ app.use(express.json());
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
 
+// Serve frontend files (THIS FIXES YOUR 404)
+app.use(express.static(__dirname));
+
 /* --------------------------
    ROUTES
 -------------------------- */
 
-// Upload
+// Upload route
 app.post("/upload", upload.single("photo"), (req, res) => {
   res.json({ success: true });
 });
@@ -122,5 +124,5 @@ app.delete("/delete/:folder/:file", (req, res) => {
 -------------------------- */
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
