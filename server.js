@@ -15,7 +15,7 @@ const approvedDir = path.join(__dirname, "approved");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, pendingDir);
+    cb(null, approvedDir); // 🔥 changed
   },
   filename: (req, file, cb) => {
 
