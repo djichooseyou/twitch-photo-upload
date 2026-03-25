@@ -1,152 +1,150 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>DJICHOOSEYOU LIVE</title>
-  <style>
-    body {
-      background: #000;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<title>DJICHOOSEYOU LIVE</title>
 
-    h1 {
-      margin-top: 90px;
-      font-size: 48px;
-      letter-spacing: 2px;
-      font-weight: bold;
-    }
+<style>
 
-    h2 {
-      margin-top: 10px;
-      margin-bottom: 30px;
-      font-weight: normal;
-      color: #ddd;
-      font-size: 20px;
-    }
+body{
+background:black;
+margin:0;
+font-family:Arial;
+color:white;
+text-align:center;
+}
 
-    .card {
-      background: #1c1c1c;
-      padding: 35px 30px;
-      border-radius: 15px;
-      width: 360px;
-      margin: auto;
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
-    }
+h1{
+margin-top:60px;
+font-size:64px;
+letter-spacing:3px;
+}
 
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-size: 16px;
-    }
+.subtitle{
+font-size:28px;
+margin-bottom:40px;
+opacity:0.8;
+}
 
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
-      background: #e6e6e6;
-      color: #000;
-    }
+.container{
+width:500px;
+margin:auto;
+padding:40px;
+border-radius:20px;
+background:linear-gradient(135deg,#1a1a1a,#2a2a2a);
+box-shadow:0 0 30px rgba(255,255,255,0.15);
+}
 
-    input[type="file"] {
-      margin-top: 10px;
-      margin-bottom: 20px;
-    }
+label{
+display:block;
+margin-top:20px;
+font-size:22px;
+}
 
-    button {
-      background: #ff0055;
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+input{
+width:100%;
+padding:14px;
+margin-top:10px;
+border-radius:12px;
+border:none;
+font-size:18px;
+}
 
-    button:hover {
-      opacity: 0.9;
-    }
+.file-row{
+margin-top:20px;
+}
 
-    button:disabled {
-      background: #777;
-      cursor: not-allowed;
-    }
+button{
+margin-top:25px;
+padding:16px 40px;
+border:none;
+border-radius:14px;
+background:#ff0055;
+color:white;
+font-size:22px;
+cursor:pointer;
+}
 
-    .small {
-      margin-top: 15px;
-      color: #888;
-      font-size: 13px;
-    }
-  </style>
+button.success{
+background:green;
+}
+
+button.error{
+background:red;
+}
+
+.note{
+margin-top:20px;
+opacity:0.6;
+}
+
+</style>
+
 </head>
+
 <body>
 
 <h1>DJICHOOSEYOU LIVE</h1>
-<h2>Upload Your Photo To The Stream</h2>
+<div class="subtitle">Upload Your Photo To The Stream</div>
 
-<div class="card">
+<div class="container">
 
-  <form id="uploadForm" enctype="multipart/form-data">
+<form id="uploadForm" enctype="multipart/form-data">
 
-    <label>Your Name or Twitch Username</label>
-    <input type="text" name="name" placeholder="Enter your name" required>
+<label>Your Name or Twitch Username</label>
+<input name="username" required>
 
-    <label>Message for the stream (optional)</label>
-    <input type="text" name="message" placeholder="Say something!">
+<label>Message for the stream (optional)</label>
+<input name="message">
 
-    <label>Select Photo</label>
-    <input type="file" name="photo" required>
+<label class="file-row">Select Photo</label>
+<input type="file" name="photo" accept="image/*" required>
 
-    <button type="submit">Upload Photo</button>
+<button type="submit" id="submitBtn">Upload</button>
 
-  </form>
+</form>
 
-  <div class="small">Your photo may appear live on the stream!</div>
+<div class="note">Your photo may appear live on the stream!</div>
 
 </div>
 
 <script>
-document.getElementById("uploadForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
 
-  const form = e.target;
-  const formData = new FormData(form);
-  const button = form.querySelector("button");
+const form = document.getElementById("uploadForm");
+const btn = document.getElementById("submitBtn");
 
-  button.disabled = true;
-  button.innerText = "Uploading...";
+form.addEventListener("submit", async (e) => {
+ e.preventDefault();
 
-  try {
-    const res = await fetch("/upload", {
-      method: "POST",
-      body: formData
-    });
+ btn.innerText = "Uploading...";
+ btn.classList.remove("error","success");
 
-    const data = await res.json();
+ const formData = new FormData(form);
 
-    if (data.success) {
-      button.innerText = "Uploaded!";
-      form.reset();
+ try {
 
-      setTimeout(() => {
-        button.innerText = "Upload Photo";
-        button.disabled = false;
-      }, 2000);
-    } else {
-      button.innerText = "Failed";
-      button.disabled = false;
-    }
+  const res = await fetch("/upload", {
+    method: "POST",
+    body: formData
+  });
 
-  } catch (err) {
-    button.innerText = "Error";
-    button.disabled = false;
+  if(res.ok){
+    btn.innerText = "Uploaded!";
+    btn.classList.add("success");
+    form.reset();
+  } else {
+    btn.innerText = "Error";
+    btn.classList.add("error");
   }
+
+ } catch(err){
+  btn.innerText = "Error";
+  btn.classList.add("error");
+ }
+
 });
+
 </script>
 
 </body>
