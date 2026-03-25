@@ -84,47 +84,47 @@ async function loadDashboard(){
         const img = document.createElement("img");
         img.src = API_BASE + "/pending/" + encodeURIComponent(file);
 
-        // ✅ APPROVE BUTTON
+        // ✅ APPROVE
         const approveBtn = document.createElement("button");
         approveBtn.innerText = "Approve";
         approveBtn.className = "approve";
 
         approveBtn.onclick = async () => {
 
-  const res = await fetch(
-    API_BASE + "/approve/" + file,
-    { method: "POST" }
-  );
+          const res = await fetch(
+            API_BASE + "/approve/" + file,
+            { method: "POST" }
+          );
 
-  if(res.ok){
-    loadDashboard();
-  } else {
-    alert("Approve failed");
-  }
+          if(res.ok){
+            loadDashboard();
+          } else {
+            alert("Approve failed");
+          }
 
-};
+        };
 
-        // ❌ DECLINE BUTTON (DELETE)
+        // ❌ DECLINE
         const declineBtn = document.createElement("button");
         declineBtn.innerText = "Decline";
         declineBtn.className = "decline";
 
         declineBtn.onclick = async () => {
 
-  if(!confirm("Delete this photo?")) return;
+          if(!confirm("Delete this photo?")) return;
 
-  const res = await fetch(
-    API_BASE + "/delete/" + file,
-    { method: "DELETE" }
-  );
+          const res = await fetch(
+            API_BASE + "/delete/" + file,
+            { method: "DELETE" }
+          );
 
-  if(res.ok){
-    loadDashboard();
-  } else {
-    alert("Delete failed");
-  }
+          if(res.ok){
+            loadDashboard();
+          } else {
+            alert("Delete failed");
+          }
 
-};
+        };
 
         card.appendChild(img);
         card.appendChild(approveBtn);
@@ -140,7 +140,7 @@ async function loadDashboard(){
 
 }
 
-// 🔁 auto refresh every 5 seconds
+// 🔁 auto refresh
 setInterval(loadDashboard, 5000);
 
 loadDashboard();
