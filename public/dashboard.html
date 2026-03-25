@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Moderation Dashboard</title>
 
 <style>
 body{
@@ -38,6 +38,7 @@ button{
   border:none;
   border-radius:5px;
   cursor:pointer;
+  font-size:14px;
 }
 
 .approve{
@@ -68,45 +69,79 @@ async function loadDashboard(){
   const container = document.getElementById("container");
   container.innerHTML = "";
 
-  const res = await fetch(API_BASE + "/pending");
-  const files = await res.json();
+  try {
 
-  files
-    .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-    .forEach(file => {
+    const res = await fetch(API_BASE + "/pending");
+    const files = await res.json();
 
-      const card = document.createElement("div");
-      card.className = "card";
+    files
+      .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+      .forEach(file => {
 
-      const img = document.createElement("img");
-      img.src = API_BASE + "/pending/" + encodeURIComponent(file);
+        const card = document.createElement("div");
+        card.className = "card";
 
-      const approveBtn = document.createElement("button");
-      approveBtn.innerText = "Approve";
-      approveBtn.className = "approve";
+        const img = document.createElement("img");
+        img.src = API_BASE + "/pending/" + encodeURIComponent(file);
 
-      approveBtn.onclick = async () => {
-        await fetch(API_BASE + "/approve/" + file, { method: "POST" });
-        loadDashboard();
-      };
+        // ✅ APPROVE BUTTON
+        const approveBtn = document.createElement("button");
+        approveBtn.innerText = "Approve";
+        approveBtn.className = "approve";
 
-      const declineBtn = document.createElement("button");
-      declineBtn.innerText = "Decline";
-      declineBtn.className = "decline";
+        approveBtn.onclick = async () => {
 
-      declineBtn.onclick = () => {
-        alert("Decline logic not implemented yet");
-      };
+          const res = await fetch(
+            API_BASE + "/approve/" + encodeURIComponent(file),
+            { method: "POST" }
+          );
 
-      card.appendChild(img);
-      card.appendChild(approveBtn);
-      card.appendChild(declineBtn);
+          if(res.ok){
+            loadDashboard();
+          } else {
+            alert("Approve failed");
+          }
 
-      container.appendChild(card);
+        };
 
-    });
+        // ❌ DECLINE BUTTON (DELETE)
+        const declineBtn = document.createElement("button");
+        declineBtn.innerText = "Decline";
+        declineBtn.className = "decline";
+
+        declineBtn.onclick = async () => {
+
+          if(!confirm("Delete this photo?")) return;
+
+          const res = await fetch(
+            API_BASE + "/delete/" + encodeURIComponent(file),
+            { method: "DELETE" }
+          );
+
+          if(res.ok){
+            loadDashboard();
+          } else {
+            alert("Delete failed");
+          }
+
+        };
+
+        card.appendChild(img);
+        card.appendChild(approveBtn);
+        card.appendChild(declineBtn);
+
+        container.appendChild(card);
+
+      });
+
+  } catch(err){
+    console.error("Dashboard error:", err);
+  }
 
 }
+
+// 🔁 auto refresh every 5 seconds
+setInterval(loadDashboard, 5000);
 
 loadDashboard();
 
