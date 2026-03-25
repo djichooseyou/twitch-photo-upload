@@ -1,128 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OSF Photo Wall</title>
+<meta charset="UTF-8">
+<title>Fan Photo Display</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      font-family: Arial, sans-serif;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+<style>
 
-    .header {
-      width: 100%;
-      text-align: center;
-      font-size: 48px;
-      padding: 20px 0;
-      font-weight: bold;
-      letter-spacing: 4px;
-      text-shadow: 0 0 20px white;
-      border-bottom: 2px solid white;
-    }
+body{
+background:black;
+margin:0;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+font-family:Arial;
+color:white;
+}
 
-    .wall {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 30px;
-      width: 90%;
-      padding: 40px 0;
-    }
+/* Photo Frame */
 
-    .card {
-      background: #111;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-bottom: 15px;
-    }
+.photo-frame{
+width:420px;
+height:740px;
+border-radius:22px;
+background:linear-gradient(135deg,#ffffff,#bbbbbb);
+box-shadow:0 0 30px rgba(255,255,255,0.35);
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
 
-    .photo {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+/* Title */
 
-    .info {
-      margin-top: 10px;
-      text-align: center;
-      padding: 10px;
-    }
+.frame-title{
+width:100%;
+text-align:center;
+font-size:28px;
+font-weight:bold;
+letter-spacing:3px;
+padding:14px 0;
+background:#000;
+color:white;
+border-bottom:2px solid #ffffff;
+text-shadow:0 0 12px rgba(255,255,255,0.9);
+}
 
-    .username {
-      font-size: 20px;
-      font-weight: bold;
-      color: white;
-    }
+/* Photo Area */
 
-    .message {
-      font-size: 16px;
-      color: #ccc;
-      margin-top: 5px;
-    }
-  </style>
+.photo-inner{
+flex:1;
+background:black;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+}
+
+.photo-inner img{
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+/* Username */
+
+.username{
+text-align:center;
+font-size:40px;
+margin-top:14px;
+font-weight:bold;
+text-shadow:0 0 12px rgba(255,255,255,0.8);
+}
+
+/* Message */
+
+.message{
+text-align:center;
+font-size:28px;
+opacity:0.9;
+padding-bottom:16px;
+}
+
+</style>
+
 </head>
 
 <body>
-  <div class="header">OSF PHOTO WALL</div>
 
-  <div class="wall" id="wall"></div>
+<div class="photo-frame">
 
-  <script>
-    async function loadPhotos() {
-      try {
-        const res = await fetch('/photos');
-        const files = await res.json();
+<div class="frame-title">
+OSF PHOTO WALL
+</div>
 
-        const wall = document.getElementById('wall');
-        wall.innerHTML = '';
+<div class="photo-inner">
+<img id="fanphoto">
+</div>
 
-        files.reverse().forEach(file => {
-          const rawName = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '');
+<div class="username" id="username"></div>
+<div class="message" id="message"></div>
 
-          // Split filename format: timestamp_username message
-          let username = 'unknown';
-          let message = '';
+</div>
 
-          if (rawName.includes('_')) {
-            const parts = rawName.split('_');
-            const rest = parts.slice(1).join('_');
+<script>
 
-            const splitRest = rest.split(' ');
-            username = splitRest[0];
-            message = splitRest.slice(1).join(' ');
-          }
+let photos = [];
+let index = 0;
 
-          const card = document.createElement('div');
-          card.className = 'card';
+/* Load approved photos */
 
-          card.innerHTML = `
-            <img src="/uploads/${file}" class="photo" />
-            <div class="info">
-              <div class="username">@${username}</div>
-              <div class="message">${message}</div>
-            </div>
-          `;
+async function loadPhotos(){
 
-          wall.appendChild(card);
-        });
-      } catch (err) {
-        console.error('Error loading photos:', err);
-      }
-    }
+ const res = await fetch("/approved");
+ photos = await res.json();
 
-    // Auto refresh every 5 seconds
-    setInterval(loadPhotos, 5000);
-    loadPhotos();
-  </script>
+}
+
+/* Rotate photos */
+
+function showNext(){
+
+ if(!photos.length) return;
+
+ const file = photos[index];
+
+ document.getElementById("fanphoto").src =
+ "/approved/"+file+"?"+Date.now();
+
+ const parts = file.split("__");
+
+ const username = parts[0] || "";
+ const message = parts[1] || "";
+
+ document.getElementById("username").innerText = "@"+username;
+ document.getElementById("message").innerText =
+ message.replaceAll("_"," ");
+
+ index++;
+
+ if(index >= photos.length){
+  index = 0;
+ }
+
+}
+
+/* refresh photo list */
+
+setInterval(loadPhotos,4000);
+
+/* rotate images */
+
+setInterval(showNext,8000);
+
+loadPhotos();
+
+</script>
+
 </body>
+
 </html>
