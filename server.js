@@ -6,112 +6,96 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Directories
+/* --------------------------
+   DIRECTORIES
+-------------------------- */
+
 const pendingDir = path.join(__dirname, "pending");
 const approvedDir = path.join(__dirname, "approved");
-const publicDir = path.join(__dirname, "public");
 
 // Ensure folders exist
-[pendingDir, approvedDir, publicDir].forEach(dir => {
-if (!fs.existsSync(dir)) {
-fs.mkdirSync(dir);
-}
+[pendingDir, approvedDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
 });
 
-// Serve frontend files
-app.use(express.static(publicDir));
+/* --------------------------
+   MULTER SETUP (UPLOAD)
+-------------------------- */
 
-// Upload setup
 const storage = multer.diskStorage({
-destination: (req, file, cb) => cb(null, pendingDir),
-filename: (req, file, cb) => {
-cb(null, Date.now() + "_" + file.originalname);
-}
+  destination: (req, file, cb) => {
+    cb(null, pendingDir);
+  },
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/\s+/g, "_");
+    cb(null, Date.now() + "_" + safeName);
+  }
 });
 
 const upload = multer({ storage });
 
-// Fix double-encoded filenames
-function fullyDecode(str) {
-try {
-return decodeURIComponent(decodeURIComponent(str));
-} catch {
-return decodeURIComponent(str);
-}
-}
+/* --------------------------
+   MIDDLEWARE
+-------------------------- */
 
-// Home route
-app.get("/", (req, res) => {
-res.sendFile(path.join(publicDir, "dashboard.html"));
-});
+app.use(express.static(__dirname));
+app.use("/pending", express.static(pendingDir));
+app.use("/approved", express.static(approvedDir));
 
-// Upload route
+/* --------------------------
+   ROUTES
+-------------------------- */
+
+// Upload
 app.post("/upload", upload.single("photo"), (req, res) => {
-res.send("Upload successful");
+  res.send("Uploaded");
 });
 
 // Get pending files
 app.get("/pending", (req, res) => {
-fs.readdir(pendingDir, (err, files) => {
-if (err) {
-return res.status(500).send("Error reading folder");
-}
-res.json(files);
-});
+  fs.readdir(pendingDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading files");
+    res.json(files);
+  });
 });
 
-// Serve images
-app.use("/pending", express.static(pendingDir));
-app.use("/approved", express.static(approvedDir));
+// Approve file (move to approved)
+app.get("/approve/:file", (req, res) => {
+  const file = decodeURIComponent(req.params.file);
 
-// Approve file
-app.post("/approve/:filename", (req, res) => {
-try {
-const filename = fullyDecode(req.params.filename);
+  const oldPath = path.join(pendingDir, file);
+  const newPath = path.join(approvedDir, file);
 
-```
-const oldPath = path.join(pendingDir, filename);
-const newPath = path.join(approvedDir, filename);
-
-if (!fs.existsSync(oldPath)) {
-  return res.status(404).send("File not found");
-}
-
-fs.rename(oldPath, newPath, err => {
-  if (err) {
-    return res.status(500).send("Move failed");
-  }
-  res.sendStatus(200);
-});
-```
-
-} catch (err) {
-res.status(500).send("Server error");
-}
+  fs.rename(oldPath, newPath, (err) => {
+    if (err) {
+      console.error("Approve error:", err);
+      return res.status(500).send("Approve failed");
+    }
+    res.send("Approved");
+  });
 });
 
 // Delete file
-app.delete("/delete/:filename", (req, res) => {
-  try {
-    const filename = fullyDecode(req.params.filename);
-    const filePath = path.join(pendingDir, filename);
+app.delete("/delete/:file", (req, res) => {
+  const file = decodeURIComponent(req.params.file);
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).send("File not found");
+  const filePath = path.join(pendingDir, file);
+
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Delete error:", err);
+      return res.status(500).send("Delete failed");
     }
-
-    fs.unlink(filePath, err => {
-      if (err) {
-        return res.status(500).send("Delete failed");
-      }
-      res.sendStatus(200);
-    });
-
-  } catch (err) {
-    res.status(500).send("Server error");
-  }
+    res.send("Deleted");
+  });
 });
-// Start server
+
+/* --------------------------
+   START SERVER
+-------------------------- */
+
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log(`Server running on port ${PORT}`);
 });
