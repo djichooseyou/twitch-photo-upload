@@ -84,10 +84,10 @@ app.get("/pending", (req, res) => {
 app.use("/approved", express.static(approvedDir));
 app.use("/pending", express.static(pendingDir));
 
-// Approve (move file)
+// ✅ APPROVE (NO DECODE — IMPORTANT)
 app.post("/approve/:file", (req, res) => {
 
-  const file = decodeURIComponent(req.params.file);
+  const file = req.params.file;
 
   const from = path.join(pendingDir, file);
   const to = path.join(approvedDir, file);
@@ -101,10 +101,11 @@ app.post("/approve/:file", (req, res) => {
   res.send("Approved");
 });
 
-// Delete (decline)
+// ❌ DELETE (DECLINE)
 app.delete("/delete/:file", (req, res) => {
 
-  const file = decodeURIComponent(req.params.file);
+  const file = req.params.file;
+
   const filePath = path.join(pendingDir, file);
 
   if (!fs.existsSync(filePath)) {
