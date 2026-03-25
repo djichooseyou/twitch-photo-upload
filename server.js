@@ -41,19 +41,23 @@ const upload = multer({ storage });
 
 app.use(express.json());
 
-// Serve dashboard ONLY (no conflicts)
+// Serve image folders
+app.use("/pending", express.static(pendingDir));
+app.use("/approved", express.static(approvedDir));
+
+/* --------------------------
+   ROOT ROUTE (FIXES RENDER)
+-------------------------- */
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
-// Serve images
-app.use("/pending", express.static(pendingDir));
-app.use("/approved", express.static(approvedDir));
 /* --------------------------
    ROUTES
 -------------------------- */
 
-// Upload route
+// Upload
 app.post("/upload", upload.single("photo"), (req, res) => {
   res.json({ success: true });
 });
