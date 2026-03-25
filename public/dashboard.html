@@ -60,8 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!file.match(/\.(jpg|jpeg|png|gif|webp)$/i)) return;
 
       const img = document.createElement("img");
-      img.src = API_BASE + "/approved/" + file;
-
+      img.src = API_BASE + "/approved/" + encodeURIComponent(file);
       container.appendChild(img);
 
     });
