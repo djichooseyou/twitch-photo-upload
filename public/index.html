@@ -1,34 +1,133 @@
-<form id="uploadForm">
-  <input type="text" name="name" placeholder="Enter your name" required><br><br>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DJICHOOSEYOU LIVE</title>
+  <style>
+    body {
+      background: #000;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
 
-  <input type="text" name="message" placeholder="Say something!"><br><br>
+    h1 {
+      margin-top: 60px;
+      font-size: 36px;
+      letter-spacing: 2px;
+    }
 
-  <input type="file" name="photo" required><br><br>
+    h2 {
+      margin-bottom: 30px;
+      font-weight: normal;
+      color: #ccc;
+    }
 
-  <button type="submit">Upload Photo</button>
-</form>
+    .card {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 15px;
+      width: 320px;
+      margin: auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
 
-<p id="status"></p>
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+
+    button {
+      background: #ff0055;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    .small {
+      margin-top: 15px;
+      color: #888;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>DJICHOOSEYOU LIVE</h1>
+<h2>Upload Your Photo To The Stream</h2>
+
+<div class="card">
+
+  <form id="uploadForm" enctype="multipart/form-data">
+
+    <p>Your Name or Twitch Username</p>
+    <input type="text" name="name" placeholder="Enter your name" required>
+
+    <p>Message for the stream (optional)</p>
+    <input type="text" name="message" placeholder="Say something!">
+
+    <p>Select Photo</p>
+    <input type="file" name="photo" required>
+
+    <br>
+    <button type="submit">Upload Photo</button>
+
+  </form>
+
+  <p class="small">Your photo may appear live on the stream!</p>
+
+</div>
 
 <script>
 document.getElementById("uploadForm").addEventListener("submit", async function(e) {
-  e.preventDefault(); // 🚨 THIS STOPS THE REDIRECT
+  e.preventDefault();
 
-  const form = document.getElementById("uploadForm");
+  const form = e.target;
   const formData = new FormData(form);
+  const button = form.querySelector("button");
 
-  const res = await fetch("/upload", {
-    method: "POST",
-    body: formData
-  });
+  button.disabled = true;
+  button.innerText = "Uploading...";
 
-  const data = await res.json();
+  try {
+    const res = await fetch("/upload", {
+      method: "POST",
+      body: formData
+    });
 
-  if (data.success) {
-    document.getElementById("status").innerText = "✅ Upload successful!";
-    form.reset();
-  } else {
-    document.getElementById("status").innerText = "❌ Upload failed";
+    const data = await res.json();
+
+    if (data.success) {
+      button.innerText = "Uploaded!";
+      form.reset();
+
+      setTimeout(() => {
+        button.innerText = "Upload Photo";
+        button.disabled = false;
+      }, 2000);
+    } else {
+      button.innerText = "Failed";
+      button.disabled = false;
+    }
+
+  } catch (err) {
+    button.innerText = "Error";
+    button.disabled = false;
   }
 });
 </script>
+
+</body>
+</html>
