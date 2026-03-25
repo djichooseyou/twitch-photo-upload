@@ -17,13 +17,37 @@ body{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  margin-top:20px;
+}
+
+.card{
+  background:#111;
+  padding:15px;
+  margin:15px;
+  border-radius:10px;
 }
 
 img{
   width:200px;
-  margin:10px;
-  border-radius:10px;
+  display:block;
+  margin-bottom:10px;
+}
+
+button{
+  margin:5px;
+  padding:8px 15px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.approve{
+  background:green;
+  color:white;
+}
+
+.decline{
+  background:red;
+  color:white;
 }
 </style>
 
@@ -31,46 +55,60 @@ img{
 
 <body>
 
-<h1>Dashboard</h1>
+<h1>Moderation Dashboard</h1>
 
 <div id="container"></div>
 
 <script>
 
-document.addEventListener("DOMContentLoaded", async () => {
+const API_BASE = "https://twitch-photo-upload.onrender.com";
 
-  const API_BASE = "https://twitch-photo-upload.onrender.com";
+async function loadDashboard(){
+
   const container = document.getElementById("container");
+  container.innerHTML = "";
 
-  try {
+  const res = await fetch(API_BASE + "/pending");
+  const files = await res.json();
 
-    const res = await fetch(API_BASE + "/approved");
-    const files = await res.json();
+  files
+    .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+    .forEach(file => {
 
-    console.log("FILES:", files); // 👈 DEBUG
-
-    if (!files.length) {
-      container.innerHTML = "<p>No images found</p>";
-      return;
-    }
-
-    files.forEach(file => {
-
-      // 🔥 ONLY allow real image files
-      if (!file.match(/\.(jpg|jpeg|png|gif|webp)$/i)) return;
+      const card = document.createElement("div");
+      card.className = "card";
 
       const img = document.createElement("img");
-      img.src = API_BASE + "/approved/" + encodeURIComponent(file);
-      container.appendChild(img);
+      img.src = API_BASE + "/pending/" + encodeURIComponent(file);
+
+      const approveBtn = document.createElement("button");
+      approveBtn.innerText = "Approve";
+      approveBtn.className = "approve";
+
+      approveBtn.onclick = async () => {
+        await fetch(API_BASE + "/approve/" + file, { method: "POST" });
+        loadDashboard();
+      };
+
+      const declineBtn = document.createElement("button");
+      declineBtn.innerText = "Decline";
+      declineBtn.className = "decline";
+
+      declineBtn.onclick = () => {
+        alert("Decline logic not implemented yet");
+      };
+
+      card.appendChild(img);
+      card.appendChild(approveBtn);
+      card.appendChild(declineBtn);
+
+      container.appendChild(card);
 
     });
 
-  } catch (err){
-    console.error("Dashboard error:", err);
-    container.innerHTML = "<p>Error loading images</p>";
-  }
+}
 
-});
+loadDashboard();
 
 </script>
 
