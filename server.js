@@ -1,4 +1,4 @@
-const express = require("express");
+const  = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
@@ -59,6 +59,14 @@ app.get("/pending", (req, res) => {
     res.json(files);
   });
 });
+// ✅ ADD THIS RIGHT BELOW
+app.get("/approved", (req, res) => {
+  fs.readdir(approvedDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading approved files");
+    res.json(files);
+  });
+});
+
 
 // Approve file (move to approved)
 app.get("/approve/:file", (req, res) => {
