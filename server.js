@@ -41,13 +41,14 @@ const upload = multer({ storage });
 
 app.use(express.json());
 
+// Serve dashboard ONLY (no conflicts)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
+
 // Serve images
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
-
-// Serve frontend files (THIS FIXES YOUR 404)
-app.use(express.static(__dirname));
-
 /* --------------------------
    ROUTES
 -------------------------- */
