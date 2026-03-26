@@ -106,10 +106,21 @@ let index = 0;
 async function loadPhotos(){
  try {
   const res = await fetch(API_BASE + "/approved-list");
-photos = await res.json();
+  photos = await res.json();
  } catch (err){
   console.log("Error loading photos", err);
  }
+}
+
+function parseFile(file){
+
+ const clean = file.substring(0, file.lastIndexOf("."));
+ const parts = clean.split("__");
+
+ return {
+  username: parts[1] || "anon",
+  message: parts[2] || ""
+ };
 }
 
 function showNext(){
@@ -119,34 +130,20 @@ function showNext(){
  const file = photos[index];
 
  document.getElementById("fanphoto").src =
- API_BASE + "/approved/" + file + "?" + Date.now();
+  API_BASE + "/approved/" + file + "?" + Date.now();
 
- const cleanName = file.substring(0, file.lastIndexOf("."));
- const parts = cleanName.split("__");
+ const data = parseFile(file);
 
- const username = parts[0] || "";
+ const cleanMessage = data.message.replace(/-/g, " ");
 
- let messageRaw = parts.slice(1).join("__");
-
- // remove timestamp
- messageRaw = messageRaw.replace(/_\d+$/, "");
-
- let message = "";
- try {
-  message = decodeURIComponent(messageRaw);
- } catch {
-  message = messageRaw;
- }
-
- document.getElementById("username").innerText = "@"+username;
- document.getElementById("message").innerText = message;
+ document.getElementById("username").innerText = "@" + data.username;
+ document.getElementById("message").innerText = cleanMessage;
 
  index++;
 
  if(index >= photos.length){
   index = 0;
  }
-
 }
 
 setInterval(loadPhotos,4000);

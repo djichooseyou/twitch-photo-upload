@@ -2,10 +2,20 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const cors = require("cors"); // 👈 ADD THIS LINE
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+/* --------------------------
+   MIDDLEWARE (IMPORTANT)
+-------------------------- */
+
+// ✅ Needed so multer can read text fields (username/message)
+app.use(express.urlencoded({ extended: true }));
+
+// ✅ CORS
+app.use(cors());
 
 /* --------------------------
    DIRECTORIES
@@ -30,16 +40,25 @@ const storage = multer.diskStorage({
     cb(null, pendingDir);
   },
   filename: (req, file, cb) => {
-  cb(null, Date.now() + "_" + file.originalname);
-}
+
+    // ✅ Get username + message safely
+    const username = (req.body.username || "anon")
+      .replace(/[^a-zA-Z0-9]/g, "-");
+
+    const message = (req.body.message || "nomsg")
+      .replace(/[^a-zA-Z0-9]/g, "-");
+
+    const filename = `${Date.now()}__${username}__${message}__${file.originalname}`;
+
+    cb(null, filename);
+  }
 });
 
 const upload = multer({ storage });
 
 /* --------------------------
-   MIDDLEWARE
+   STATIC FILES
 -------------------------- */
-app.use(cors()); // 👈 ADD THIS LINE
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/pending", express.static(pendingDir));
@@ -51,6 +70,7 @@ app.use("/approved", express.static(approvedDir));
 
 // Upload
 app.post("/upload", upload.single("photo"), (req, res) => {
+  console.log("UPLOAD:", req.body); // 👈 helpful for testing
   res.send("Uploaded");
 });
 
@@ -62,6 +82,7 @@ app.get("/pending", (req, res) => {
   });
 });
 
+// Approved list (images only)
 app.get("/approved-list", (req, res) => {
   fs.readdir(approvedDir, (err, files) => {
     if (err) return res.status(500).send("Error reading folder");
@@ -74,8 +95,7 @@ app.get("/approved-list", (req, res) => {
   });
 });
 
-
-// ✅ ADD THIS RIGHT BELOW
+// Full approved list
 app.get("/approved", (req, res) => {
   fs.readdir(approvedDir, (err, files) => {
     if (err) return res.status(500).send("Error reading approved files");
@@ -83,8 +103,7 @@ app.get("/approved", (req, res) => {
   });
 });
 
-
-// Approve file (move to approved)
+// Approve file
 app.get("/approve/:file", (req, res) => {
   const file = decodeURIComponent(req.params.file);
 
