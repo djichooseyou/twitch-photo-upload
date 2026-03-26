@@ -130,7 +130,7 @@ function showNext(){
  const file = photos[index];
 
  document.getElementById("fanphoto").src =
-  API_BASE + "/approved/" + file + "?" + Date.now();
+ API_BASE + "/approved/" + encodeURIComponent(file) + "?" + Date.now();
 
  const data = parseFile(file);
 
