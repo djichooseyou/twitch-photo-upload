@@ -103,22 +103,19 @@ app.get("/approved", (req, res) => {
 // Approve file
 app.get("/approve/:file", (req, res) => {
 
-  let requested = req.params.file;
+  const requested = req.params.file;
 
-  // Decode safely (once or twice)
-  try {
-    requested = decodeURIComponent(requested);
-    requested = decodeURIComponent(requested);
-  } catch (e) {}
+  // 🔥 Extract timestamp (this is ALWAYS safe)
+  const id = requested.split("__")[0];
 
   fs.readdir(pendingDir, (err, files) => {
     if (err) return res.status(500).send("Error reading pending");
 
-    // 🔥 Find exact match
-    const match = files.find(f => f.includes(requested.split("__")[0]));
+    // ✅ Find exact file using timestamp
+    const match = files.find(f => f.startsWith(id));
 
     if (!match) {
-      console.error("File not found:", requested);
+      console.error("File not found for ID:", id);
       return res.status(404).send("File not found");
     }
 
