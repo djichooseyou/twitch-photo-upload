@@ -102,7 +102,7 @@ app.get("/approved", (req, res) => {
 
 // Approve file
 app.get("/approve/:file", (req, res) => {
-  const file = decodeURIComponent(req.params.file);
+  const file = req.params.file;
 
   const oldPath = path.join(pendingDir, file);
   const newPath = path.join(approvedDir, file);
@@ -118,7 +118,7 @@ app.get("/approve/:file", (req, res) => {
 
 // Delete file
 app.delete("/delete/:file", (req, res) => {
-  const file = decodeURIComponent(req.params.file);
+  const file = req.params.file;
 
   const filePath = path.join(pendingDir, file);
 
