@@ -59,6 +59,20 @@ app.get("/pending", (req, res) => {
     res.json(files);
   });
 });
+
+app.get("/approved-list", (req, res) => {
+  fs.readdir(approvedDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading folder");
+
+    const images = files.filter(file =>
+      file.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+    );
+
+    res.json(images);
+  });
+});
+
+
 // ✅ ADD THIS RIGHT BELOW
 app.get("/approved", (req, res) => {
   fs.readdir(approvedDir, (err, files) => {
