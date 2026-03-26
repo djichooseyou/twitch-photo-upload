@@ -102,7 +102,8 @@ app.get("/approved", (req, res) => {
 
 // Approve file
 app.get("/approve/:file", (req, res) => {
-  const file = req.params.file;
+
+  const file = decodeURIComponent(req.params.file); // ✅ correct usage
 
   const oldPath = path.join(pendingDir, file);
   const newPath = path.join(approvedDir, file);
@@ -110,6 +111,7 @@ app.get("/approve/:file", (req, res) => {
   fs.rename(oldPath, newPath, (err) => {
     if (err) {
       console.error("Approve error:", err);
+      console.error("Tried file:", file);
       return res.status(500).send("Approve failed");
     }
     res.send("Approved");
