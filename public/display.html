@@ -134,10 +134,12 @@ function showNext(){
 
  const data = parseFile(file);
 
- const cleanMessage = data.message.replace(/-/g, " ");
+// ✅ decode values (THIS is what fixes #, emojis, etc.)
+const cleanUsername = decodeURIComponent(data.username);
+const cleanMessage = decodeURIComponent(data.message);
 
- document.getElementById("username").innerText = "@" + data.username;
- document.getElementById("message").innerText = cleanMessage;
+document.getElementById("username").innerText = "@" + cleanUsername;
+document.getElementById("message").innerText = cleanMessage;
 
  index++;
 

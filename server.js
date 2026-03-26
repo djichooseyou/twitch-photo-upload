@@ -42,11 +42,8 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
 
     // ✅ Get username + message safely
-    const username = (req.body.username || "anon")
-      .replace(/[^a-zA-Z0-9]/g, "-");
-
-    const message = (req.body.message || "nomsg")
-      .replace(/[^a-zA-Z0-9]/g, "-");
+const username = encodeURIComponent(req.body.username || "anon");
+const message = encodeURIComponent(req.body.message || "nomsg");
 
     const filename = `${Date.now()}__${username}__${message}__${file.originalname}`;
 
