@@ -105,8 +105,8 @@ let index = 0;
 
 async function loadPhotos(){
  try {
-  const res = await fetch(API_BASE + "/approved");
-  photos = await res.json();
+  const res = await fetch(API_BASE + "/approved-list");
+photos = await res.json();
  } catch (err){
   console.log("Error loading photos", err);
  }
