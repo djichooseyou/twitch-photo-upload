@@ -128,7 +128,17 @@ let index = 0;
 async function loadPhotos(){
  try {
   const res = await fetch(API_BASE + "/approved-list");
-  photos = await res.json();
+  const newPhotos = (await res.json()).reverse();
+
+  // 🔥 If a new photo appears, jump to it immediately
+  if (newPhotos.length && newPhotos[0] !== photos[0]) {
+    photos = newPhotos;
+    index = 0;          // reset to newest
+    showNext();         // show instantly
+  } else {
+    photos = newPhotos;
+  }
+
  } catch (err){
   console.log("Error loading photos", err);
  }
@@ -170,8 +180,8 @@ document.getElementById("message").innerText = cleanMessage;
  }
 }
 
-setInterval(loadPhotos,4000);
-setInterval(showNext,8000);
+setInterval(loadPhotos,3000);   // refresh list faster
+setInterval(showNext,5000);     // show new image every 5 sec
 
 loadPhotos();
 
