@@ -101,7 +101,7 @@ app.get("/approved", (req, res) => {
 });
 
 // Approve file
-app.get("/approve/:file", (req, res) => {
+app.post("/approve/:file", (req, res) => {
 
   const requested = req.params.file;
 
