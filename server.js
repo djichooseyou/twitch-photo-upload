@@ -103,18 +103,35 @@ app.get("/approved", (req, res) => {
 // Approve file
 app.get("/approve/:file", (req, res) => {
 
-  const file = decodeURIComponent(req.params.file); // ✅ correct usage
+  let requested = req.params.file;
 
-  const oldPath = path.join(pendingDir, file);
-  const newPath = path.join(approvedDir, file);
+  // Decode safely (once or twice)
+  try {
+    requested = decodeURIComponent(requested);
+    requested = decodeURIComponent(requested);
+  } catch (e) {}
 
-  fs.rename(oldPath, newPath, (err) => {
-    if (err) {
-      console.error("Approve error:", err);
-      console.error("Tried file:", file);
-      return res.status(500).send("Approve failed");
+  fs.readdir(pendingDir, (err, files) => {
+    if (err) return res.status(500).send("Error reading pending");
+
+    // 🔥 Find exact match
+    const match = files.find(f => f.includes(requested.split("__")[0]));
+
+    if (!match) {
+      console.error("File not found:", requested);
+      return res.status(404).send("File not found");
     }
-    res.send("Approved");
+
+    const oldPath = path.join(pendingDir, match);
+    const newPath = path.join(approvedDir, match);
+
+    fs.rename(oldPath, newPath, (err) => {
+      if (err) {
+        console.error("Approve error:", err);
+        return res.status(500).send("Approve failed");
+      }
+      res.send("Approved");
+    });
   });
 });
 
