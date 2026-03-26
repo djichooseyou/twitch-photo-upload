@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors"); // 👈 ADD THIS LINE
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,6 +39,7 @@ const upload = multer({ storage });
 /* --------------------------
    MIDDLEWARE
 -------------------------- */
+app.use(cors()); // 👈 ADD THIS LINE
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/pending", express.static(pendingDir));
