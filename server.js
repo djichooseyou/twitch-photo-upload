@@ -3,7 +3,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
-const sharp = require("sharp"); // ✅ NEW
+const sharp = require("sharp");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,32 +21,20 @@ app.use(cors());
 
 const pendingDir = path.join(__dirname, "pending");
 const approvedDir = path.join(__dirname, "approved");
-const thumbsDir = path.join(__dirname, "thumbs"); // ✅ NEW
+const thumbsDir = path.join(__dirname, "thumbs");
+const tempDir = path.join(__dirname, "temp"); // ✅ NEW
 
-[pendingDir, approvedDir, thumbsDir].forEach(dir => {
+[pendingDir, approvedDir, thumbsDir, tempDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
 });
 
 /* --------------------------
-   MULTER SETUP
+   MULTER (TEMP UPLOAD)
 -------------------------- */
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, pendingDir);
-  },
-  filename: (req, file, cb) => {
-    const username = encodeURIComponent(req.body.username || "anon");
-    const message = encodeURIComponent(req.body.message || "nomsg");
-
-    const filename = `${Date.now()}__${username}__${message}__${file.originalname}`;
-    cb(null, filename);
-  }
-});
-
-const upload = multer({ storage });
+const upload = multer({ dest: tempDir }); // ✅ FIXED
 
 /* --------------------------
    STATIC FILES
@@ -55,46 +43,54 @@ const upload = multer({ storage });
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
-app.use("/thumbs", express.static(thumbsDir)); // ✅ NEW
+app.use("/thumbs", express.static(thumbsDir));
 
 /* --------------------------
    ROUTES
 -------------------------- */
 
-// 🚀 Upload + Compress + Thumbnail
+// 🚀 Upload (FIXED WITH TEMP + SHARP)
 app.post("/upload", upload.single("photo"), async (req, res) => {
   try {
-    const filePath = req.file.path;
-    const filename = req.file.filename;
+    if (!req.file) {
+      return res.status(400).send("No file uploaded");
+    }
 
-    const finalPath = path.join(pendingDir, filename);
-    const thumbPath = path.join(thumbsDir, filename);
+    const tempPath = req.file.path;
 
-    // ✅ Compress main image
-    await sharp(filePath)
+    const username = encodeURIComponent(req.body.username || "anon");
+    const message = encodeURIComponent(req.body.message || "nomsg");
+
+    const safeName = `${Date.now()}__${username}__${message}__${req.file.originalname}`;
+
+    const finalPath = path.join(pendingDir, safeName);
+    const thumbPath = path.join(thumbsDir, safeName);
+
+    // ✅ FULL IMAGE (compressed)
+    await sharp(tempPath)
       .resize(1080)
       .jpeg({ quality: 70 })
       .toFile(finalPath);
 
-    // ✅ Create thumbnail
-    await sharp(filePath)
+    // ✅ THUMBNAIL
+    await sharp(tempPath)
       .resize(300)
       .jpeg({ quality: 60 })
       .toFile(thumbPath);
 
-    // ✅ Remove original temp file
-    fs.unlinkSync(filePath);
+    // ✅ REMOVE TEMP FILE
+    fs.unlinkSync(tempPath);
 
-    console.log("UPLOAD:", req.body);
+    console.log("UPLOAD:", safeName);
     res.send("Uploaded");
 
   } catch (err) {
-    console.error(err);
+    console.error("UPLOAD ERROR:", err);
     res.status(500).send("Upload failed");
   }
 });
 
-// ⚡ Paginated pending images
+// ⚡ Paginated pending list
 app.get("/pending", (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
@@ -132,7 +128,7 @@ app.get("/approved", (req, res) => {
   });
 });
 
-// Approve file
+// ✅ APPROVE
 app.post("/approve/:file", (req, res) => {
   const requested = req.params.file;
   const id = requested.split("__")[0];
@@ -143,7 +139,7 @@ app.post("/approve/:file", (req, res) => {
     const match = files.find(f => f.startsWith(id));
 
     if (!match) {
-      console.error("File not found for ID:", id);
+      console.error("File not found:", id);
       return res.status(404).send("File not found");
     }
 
@@ -160,7 +156,7 @@ app.post("/approve/:file", (req, res) => {
   });
 });
 
-// Delete file
+// ❌ DELETE
 app.delete("/delete/:file", (req, res) => {
   const file = req.params.file;
   const filePath = path.join(pendingDir, file);
