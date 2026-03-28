@@ -59,7 +59,7 @@ app.post("/upload", upload.single("photo"), async (req, res) => {
     const tempPath = req.file.path;
 
     const username = encodeURIComponent(req.body.username || "anon");
-    const message = encodeURIComponent(req.body.message || "nomsg");
+    const message = encodeURIComponent(req.body.message || "");
 
     const safeName = `${Date.now()}__${username}__${message}__${req.file.originalname}`;
 
