@@ -3,18 +3,16 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const sharp = require("sharp"); // ✅ NEW
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* --------------------------
-   MIDDLEWARE (IMPORTANT)
+   MIDDLEWARE
 -------------------------- */
 
-// ✅ Needed so multer can read text fields (username/message)
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ CORS
 app.use(cors());
 
 /* --------------------------
@@ -23,16 +21,16 @@ app.use(cors());
 
 const pendingDir = path.join(__dirname, "pending");
 const approvedDir = path.join(__dirname, "approved");
+const thumbsDir = path.join(__dirname, "thumbs"); // ✅ NEW
 
-// Ensure folders exist
-[pendingDir, approvedDir].forEach(dir => {
+[pendingDir, approvedDir, thumbsDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
 });
 
 /* --------------------------
-   MULTER SETUP (UPLOAD)
+   MULTER SETUP
 -------------------------- */
 
 const storage = multer.diskStorage({
@@ -40,13 +38,10 @@ const storage = multer.diskStorage({
     cb(null, pendingDir);
   },
   filename: (req, file, cb) => {
-
-    // ✅ Get username + message safely
-const username = encodeURIComponent(req.body.username || "anon");
-const message = encodeURIComponent(req.body.message || "nomsg");
+    const username = encodeURIComponent(req.body.username || "anon");
+    const message = encodeURIComponent(req.body.message || "nomsg");
 
     const filename = `${Date.now()}__${username}__${message}__${file.originalname}`;
-
     cb(null, filename);
   }
 });
@@ -60,22 +55,59 @@ const upload = multer({ storage });
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/pending", express.static(pendingDir));
 app.use("/approved", express.static(approvedDir));
+app.use("/thumbs", express.static(thumbsDir)); // ✅ NEW
 
 /* --------------------------
    ROUTES
 -------------------------- */
 
-// Upload
-app.post("/upload", upload.single("photo"), (req, res) => {
-  console.log("UPLOAD:", req.body); // 👈 helpful for testing
-  res.send("Uploaded");
+// 🚀 Upload + Compress + Thumbnail
+app.post("/upload", upload.single("photo"), async (req, res) => {
+  try {
+    const filePath = req.file.path;
+    const filename = req.file.filename;
+
+    const finalPath = path.join(pendingDir, filename);
+    const thumbPath = path.join(thumbsDir, filename);
+
+    // ✅ Compress main image
+    await sharp(filePath)
+      .resize(1080)
+      .jpeg({ quality: 70 })
+      .toFile(finalPath);
+
+    // ✅ Create thumbnail
+    await sharp(filePath)
+      .resize(300)
+      .jpeg({ quality: 60 })
+      .toFile(thumbPath);
+
+    // ✅ Remove original temp file
+    fs.unlinkSync(filePath);
+
+    console.log("UPLOAD:", req.body);
+    res.send("Uploaded");
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Upload failed");
+  }
 });
 
-// Get pending files
+// ⚡ Paginated pending images
 app.get("/pending", (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+
   fs.readdir(pendingDir, (err, files) => {
     if (err) return res.status(500).send("Error reading files");
-    res.json(files);
+
+    files.sort((a, b) => b.localeCompare(a));
+
+    const start = (page - 1) * limit;
+    const paginated = files.slice(start, start + limit);
+
+    res.json(paginated);
   });
 });
 
@@ -102,16 +134,12 @@ app.get("/approved", (req, res) => {
 
 // Approve file
 app.post("/approve/:file", (req, res) => {
-
   const requested = req.params.file;
-
-  // 🔥 Extract timestamp (this is ALWAYS safe)
   const id = requested.split("__")[0];
 
   fs.readdir(pendingDir, (err, files) => {
     if (err) return res.status(500).send("Error reading pending");
 
-    // ✅ Find exact file using timestamp
     const match = files.find(f => f.startsWith(id));
 
     if (!match) {
@@ -135,7 +163,6 @@ app.post("/approve/:file", (req, res) => {
 // Delete file
 app.delete("/delete/:file", (req, res) => {
   const file = req.params.file;
-
   const filePath = path.join(pendingDir, file);
 
   fs.unlink(filePath, (err) => {
