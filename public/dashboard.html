@@ -24,6 +24,7 @@ body{
   padding:15px;
   margin:15px;
   border-radius:10px;
+  transition: border 0.4s ease; /* 🔥 ADD THIS LINE */
 }
 
 img{
@@ -73,7 +74,12 @@ async function loadDashboard(){
 
     const res = await fetch(API_BASE + "/pending");
     const files = await res.json();
-
+// 🧹 Clean up seen set (remove files that no longer exist)
+seen.forEach(file => {
+  if (!files.includes(file)) {
+    seen.delete(file);
+  }
+});
     files
       .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
       .forEach(file => {
@@ -83,6 +89,8 @@ async function loadDashboard(){
 
         const card = document.createElement("div");
         card.className = "card";
+        card.style.border = "2px solid lime";
+        setTimeout(() => card.style.border = "", 1500);
 
         const img = document.createElement("img");
         img.src = API_BASE + "/pending/" + encodeURIComponent(file);
