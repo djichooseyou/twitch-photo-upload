@@ -129,7 +129,7 @@ app.get("/approved", (req, res) => {
 });
 
 // ✅ APPROVE
-app.post("/approve/:file", (req, res) => {
+app.get("/approve/:file", (req, res) => {
   const requested = req.params.file;
   const id = requested.split("__")[0];
 
