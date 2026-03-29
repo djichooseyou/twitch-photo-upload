@@ -63,11 +63,11 @@ button{
 <script>
 
 const API_BASE = "https://twitch-photo-upload.onrender.com";
+const seen = new Set(); // ✅ track what's already on screen
 
 async function loadDashboard(){
 
   const container = document.getElementById("container");
-  container.innerHTML = "";
 
   try {
 
@@ -77,6 +77,9 @@ async function loadDashboard(){
     files
       .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
       .forEach(file => {
+
+        if (seen.has(file)) return; // ✅ skip existing
+        seen.add(file);
 
         const card = document.createElement("div");
         card.className = "card";
@@ -93,10 +96,11 @@ async function loadDashboard(){
 
           const res = await fetch(
             API_BASE + "/approve/" + encodeURIComponent(file)
-          ); // ✅ FIX: removed POST
+          );
 
           if(res.ok){
-            loadDashboard();
+            card.remove();            // ✅ remove instantly
+            seen.delete(file);        // ✅ keep set clean
           } else {
             alert("Approve failed");
           }
@@ -118,7 +122,8 @@ async function loadDashboard(){
           );
 
           if(res.ok){
-            loadDashboard();
+            card.remove();            // ✅ remove instantly
+            seen.delete(file);        // ✅ keep set clean
           } else {
             alert("Delete failed");
           }
@@ -129,7 +134,7 @@ async function loadDashboard(){
         card.appendChild(approveBtn);
         card.appendChild(declineBtn);
 
-        container.appendChild(card);
+        container.prepend(card); // 🔥 NEW ITEMS AT TOP
 
       });
 
