@@ -89,8 +89,12 @@ seen.forEach(file => {
 
         const card = document.createElement("div");
         card.className = "card";
-        card.style.border = "2px solid lime";
-        setTimeout(() => card.style.border = "", 1500);
+        card.style.boxShadow = "0 0 25px lime";
+card.style.transition = "box-shadow 0.6s ease";
+
+setTimeout(() => {
+  card.style.boxShadow = "0 0 0px transparent";
+}, 1500);
 
         const img = document.createElement("img");
         img.src = API_BASE + "/pending/" + encodeURIComponent(file);
