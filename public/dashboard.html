@@ -24,7 +24,7 @@ body{
   padding:15px;
   margin:15px;
   border-radius:10px;
-  transition: border 0.4s ease; /* 🔥 ADD THIS LINE */
+  transition: border 0.4s ease;
 }
 
 img{
@@ -64,7 +64,7 @@ button{
 <script>
 
 const API_BASE = "https://twitch-photo-upload.onrender.com";
-const seen = new Set(); // ✅ track what's already on screen
+const seen = new Set();
 
 async function loadDashboard(){
 
@@ -74,52 +74,68 @@ async function loadDashboard(){
 
     const res = await fetch(API_BASE + "/pending");
     const files = await res.json();
-// 🧹 Clean up seen set (remove files that no longer exist)
-seen.forEach(file => {
-  if (!files.includes(file)) {
-    seen.delete(file);
-  }
-});
+
+    console.log("Loaded photos:", files);
+
+    // Clean up seen set
+    seen.forEach(file => {
+      if (!files.includes(file)) {
+        seen.delete(file);
+      }
+    });
+
     files
       .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
       .forEach(file => {
 
-        if (seen.has(file)) return; // ✅ skip existing
+        if (seen.has(file)) return;
         seen.add(file);
 
         const card = document.createElement("div");
         card.className = "card";
+
+        // Glow effect for new items
         card.style.boxShadow = "0 0 25px lime";
-card.style.transition = "box-shadow 0.6s ease";
+        card.style.transition = "box-shadow 0.6s ease";
 
-setTimeout(() => {
-  card.style.boxShadow = "0 0 0px transparent";
-}, 1500);
+        setTimeout(() => {
+          card.style.boxShadow = "0 0 0px transparent";
+        }, 1500);
 
+        // Image
         const img = document.createElement("img");
-        img.src = API_BASE + "/pending/" + encodeURIComponent(file);
+        img.src = API_BASE + "/pending/" + file;
 
-        // ✅ APPROVE
-const approveBtn = document.createElement("button");
-approveBtn.innerText = "Approve";
-approveBtn.className = "approve";
+        // APPROVE BUTTON
+        const approveBtn = document.createElement("button");
+        approveBtn.innerText = "Approve";
+        approveBtn.className = "approve";
 
-approveBtn.onclick = async () => {
+        approveBtn.onclick = async () => {
 
-  const res = await fetch(
-    API_BASE + "/approve/" + encodeURIComponent(file),
-    { method: "POST" }   // 🔥 THIS IS THE FIX
-  );
+          const res = await fetch(
+            API_BASE + "/approve/" + file,
+            { method: "POST" }
+          );
 
-  if(res.ok){
-    card.remove();            
-    seen.delete(file);        
-  } else {
-    alert("Approve failed");
-  }
+          if(res.ok){
 
-};
-        // ❌ DECLINE
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.9)";
+            card.style.transition = "all 0.3s ease";
+
+            setTimeout(() => {
+              card.remove();
+              seen.delete(file);
+            }, 300);
+
+          } else {
+            alert("Approve failed");
+          }
+
+        };
+
+        // DECLINE BUTTON
         const declineBtn = document.createElement("button");
         declineBtn.innerText = "Decline";
         declineBtn.className = "decline";
@@ -129,13 +145,21 @@ approveBtn.onclick = async () => {
           if(!confirm("Delete this photo?")) return;
 
           const res = await fetch(
-            API_BASE + "/delete/" + encodeURIComponent(file),
+            API_BASE + "/delete/" + file,
             { method: "DELETE" }
           );
 
           if(res.ok){
-            card.remove();            // ✅ remove instantly
-            seen.delete(file);        // ✅ keep set clean
+
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.9)";
+            card.style.transition = "all 0.3s ease";
+
+            setTimeout(() => {
+              card.remove();
+              seen.delete(file);
+            }, 300);
+
           } else {
             alert("Delete failed");
           }
@@ -146,7 +170,7 @@ approveBtn.onclick = async () => {
         card.appendChild(approveBtn);
         card.appendChild(declineBtn);
 
-        container.prepend(card); // 🔥 NEW ITEMS AT TOP
+        container.prepend(card);
 
       });
 
@@ -156,9 +180,10 @@ approveBtn.onclick = async () => {
 
 }
 
-// 🔁 auto refresh
+// Auto refresh every 5 seconds
 setInterval(loadDashboard, 5000);
 
+// Initial load
 loadDashboard();
 
 </script>
