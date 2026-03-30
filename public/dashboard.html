@@ -24,7 +24,7 @@ body{
   padding:15px;
   margin:15px;
   border-radius:10px;
-  transition: border 0.4s ease;
+  transition: border 0.4s ease; /* 🔥 ADD THIS LINE */
 }
 
 img{
@@ -64,7 +64,7 @@ button{
 <script>
 
 const API_BASE = "https://twitch-photo-upload.onrender.com";
-const seen = new Set();
+const seen = new Set(); // ✅ track what's already on screen
 
 async function loadDashboard(){
 
@@ -74,39 +74,32 @@ async function loadDashboard(){
 
     const res = await fetch(API_BASE + "/pending");
     const files = await res.json();
-
-    console.log("Loaded photos:", files);
-
-    // Clean up seen set
-    seen.forEach(file => {
-      if (!files.includes(file)) {
-        seen.delete(file);
-      }
-    });
-
+// 🧹 Clean up seen set (remove files that no longer exist)
+seen.forEach(file => {
+  if (!files.includes(file)) {
+    seen.delete(file);
+  }
+});
     files
       .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
       .forEach(file => {
 
-        if (seen.has(file)) return;
+        if (seen.has(file)) return; // ✅ skip existing
         seen.add(file);
 
         const card = document.createElement("div");
         card.className = "card";
-
-        // Glow effect for new items
         card.style.boxShadow = "0 0 25px lime";
-        card.style.transition = "box-shadow 0.6s ease";
+card.style.transition = "box-shadow 0.6s ease";
 
-        setTimeout(() => {
-          card.style.boxShadow = "0 0 0px transparent";
-        }, 1500);
+setTimeout(() => {
+  card.style.boxShadow = "0 0 0px transparent";
+}, 1500);
 
-        // Image
         const img = document.createElement("img");
-        img.src = API_BASE + "/pending/" + file;
+        img.src = API_BASE + "/pending/" + encodeURIComponent(file);
 
-        // APPROVE BUTTON
+        // ✅ APPROVE
         const approveBtn = document.createElement("button");
         approveBtn.innerText = "Approve";
         approveBtn.className = "approve";
@@ -114,28 +107,19 @@ async function loadDashboard(){
         approveBtn.onclick = async () => {
 
           const res = await fetch(
-            API_BASE + "/approve/" + file,
-            { method: "POST" }
+            API_BASE + "/approve/" + encodeURIComponent(file)
           );
 
           if(res.ok){
-
-            card.style.opacity = "0";
-            card.style.transform = "scale(0.9)";
-            card.style.transition = "all 0.3s ease";
-
-            setTimeout(() => {
-              card.remove();
-              seen.delete(file);
-            }, 300);
-
+            card.remove();            // ✅ remove instantly
+            seen.delete(file);        // ✅ keep set clean
           } else {
             alert("Approve failed");
           }
 
         };
 
-        // DECLINE BUTTON
+        // ❌ DECLINE
         const declineBtn = document.createElement("button");
         declineBtn.innerText = "Decline";
         declineBtn.className = "decline";
@@ -145,21 +129,13 @@ async function loadDashboard(){
           if(!confirm("Delete this photo?")) return;
 
           const res = await fetch(
-            API_BASE + "/delete/" + file,
+            API_BASE + "/delete/" + encodeURIComponent(file),
             { method: "DELETE" }
           );
 
           if(res.ok){
-
-            card.style.opacity = "0";
-            card.style.transform = "scale(0.9)";
-            card.style.transition = "all 0.3s ease";
-
-            setTimeout(() => {
-              card.remove();
-              seen.delete(file);
-            }, 300);
-
+            card.remove();            // ✅ remove instantly
+            seen.delete(file);        // ✅ keep set clean
           } else {
             alert("Delete failed");
           }
@@ -170,7 +146,7 @@ async function loadDashboard(){
         card.appendChild(approveBtn);
         card.appendChild(declineBtn);
 
-        container.prepend(card);
+        container.prepend(card); // 🔥 NEW ITEMS AT TOP
 
       });
 
@@ -180,10 +156,9 @@ async function loadDashboard(){
 
 }
 
-// Auto refresh every 5 seconds
+// 🔁 auto refresh
 setInterval(loadDashboard, 5000);
 
-// Initial load
 loadDashboard();
 
 </script>
