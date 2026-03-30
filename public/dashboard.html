@@ -75,11 +75,7 @@ async function loadDashboard(){
     const res = await fetch(API_BASE + "/pending");
     const files = await res.json();
 // 🧹 Clean up seen set (remove files that no longer exist)
-seen.forEach(file => {
-  if (!files.includes(file)) {
-    seen.delete(file);
-  }
-});
+
     files
       .filter(file => file.match(/\.(jpg|jpeg|png|gif|webp)$/i))
       .forEach(file => {
