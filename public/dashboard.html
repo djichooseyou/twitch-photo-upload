@@ -100,25 +100,25 @@ setTimeout(() => {
         img.src = API_BASE + "/pending/" + encodeURIComponent(file);
 
         // ✅ APPROVE
-        const approveBtn = document.createElement("button");
-        approveBtn.innerText = "Approve";
-        approveBtn.className = "approve";
+const approveBtn = document.createElement("button");
+approveBtn.innerText = "Approve";
+approveBtn.className = "approve";
 
-        approveBtn.onclick = async () => {
+approveBtn.onclick = async () => {
 
-          const res = await fetch(
-            API_BASE + "/approve/" + encodeURIComponent(file)
-          );
+  const res = await fetch(
+    API_BASE + "/approve/" + encodeURIComponent(file),
+    { method: "POST" }   // 🔥 THIS IS THE FIX
+  );
 
-          if(res.ok){
-            card.remove();            // ✅ remove instantly
-            seen.delete(file);        // ✅ keep set clean
-          } else {
-            alert("Approve failed");
-          }
+  if(res.ok){
+    card.remove();            
+    seen.delete(file);        
+  } else {
+    alert("Approve failed");
+  }
 
-        };
-
+};
         // ❌ DECLINE
         const declineBtn = document.createElement("button");
         declineBtn.innerText = "Decline";
