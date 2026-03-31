@@ -130,14 +130,7 @@ async function loadPhotos(){
   const res = await fetch(API_BASE + "/approved-list");
   const newPhotos = (await res.json()).reverse();
 
-  // 🔥 If a new photo appears, jump to it immediately
-  if (newPhotos.length && newPhotos[0] !== photos[0]) {
-    photos = newPhotos;
-    index = 0;          // reset to newest
-    showNext();         // show instantly
-  } else {
-    photos = newPhotos;
-  }
+ photos = newPhotos;
 
  } catch (err){
   console.log("Error loading photos", err);
